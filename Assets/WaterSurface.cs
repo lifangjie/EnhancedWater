@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [ExecuteInEditMode] // Make water live-update even when not in play mode
-public class Water : MonoBehaviour {
+public class WaterSurface : MonoBehaviour {
     public enum WaterMode {
         Simple = 0,
         Reflective = 1,
@@ -22,14 +23,14 @@ public class Water : MonoBehaviour {
     public int TextureSize = 256;
     public float ClipPlaneOffset = 0.07f;
     public LayerMask ReflectLayers = -1;
-    public LayerMask RefractLayers = -1;
+    //public LayerMask RefractLayers = -1;
 
 
     // Camera -> Camera table
     private readonly Dictionary<Camera, Camera> _mReflectionCameras = new Dictionary<Camera, Camera>();
 
     // Camera -> Camera table
-    private readonly Dictionary<Camera, Camera> _mRefractionCameras = new Dictionary<Camera, Camera>();
+    private readonly Dictionary<Camera, CommandBuffer> _mRefractionCameras = new Dictionary<Camera, CommandBuffer>();
 
     private RenderTexture _mReflectionTexture;
     private RenderTexture _mRefractionTexture;
@@ -37,6 +38,18 @@ public class Water : MonoBehaviour {
     private int _mOldReflectionTextureSize;
     private int _mOldRefractionTextureSize;
     private static bool _sInsideWater;
+
+    private void Cleanup() {
+        foreach (var camera in _mRefractionCameras) {
+            if (camera.Key) {
+                camera.Key.RemoveCommandBuffer(CameraEvent.AfterSkybox, camera.Value);
+            }
+        }
+    }
+
+    public void OnEnable() {
+        Cleanup();
+    }
 
 
     // This is called when it's known that the object will be rendered by some
@@ -52,9 +65,20 @@ public class Water : MonoBehaviour {
         Camera cam = Camera.current;
         if (!cam) {
             return;
-        } else {
-            cam.depthTextureMode = DepthTextureMode.Depth;
         }
+        if (!_mRefractionCameras.ContainsKey(cam)) {
+            cam.depthTextureMode = DepthTextureMode.Depth;
+
+            CommandBuffer commandBuffer = new CommandBuffer {name = "Grab screen for refraction"};
+            _mRefractionCameras[cam] = commandBuffer;
+            // copy screen into temporary RT
+            int screenCopyId = Shader.PropertyToID("_ScreenCopyTexture");
+            commandBuffer.GetTemporaryRT(screenCopyId, -1, -1, 0, FilterMode.Bilinear);
+            commandBuffer.Blit(BuiltinRenderTextureType.CurrentActive, screenCopyId);
+            commandBuffer.SetGlobalTexture("_RefractionTex", screenCopyId);
+            cam.AddCommandBuffer(CameraEvent.AfterSkybox, commandBuffer);
+        }
+
 
         // Safeguard from recursive water reflections.
         if (_sInsideWater) {
@@ -117,25 +141,25 @@ public class Water : MonoBehaviour {
             GetComponent<Renderer>().sharedMaterial.SetTexture("_ReflectionTex", _mReflectionTexture);
         }
 
-        // Render refraction
-        if (mode >= WaterMode.Refractive) {
-            refractionCamera.worldToCameraMatrix = cam.worldToCameraMatrix;
-
-            // Setup oblique projection matrix so that near plane is our reflection
-            // plane. This way we clip everything below/above it for free.
-            Vector4 clipPlane = CameraSpacePlane(refractionCamera, pos, normal, -1.0f);
-            //refractionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
-
-            // Set custom culling matrix from the current camera
-            refractionCamera.cullingMatrix = cam.projectionMatrix * cam.worldToCameraMatrix;
-
-            refractionCamera.cullingMask = ~(1 << 4) & RefractLayers.value; // never render water layer
-            refractionCamera.targetTexture = _mRefractionTexture;
-            refractionCamera.transform.position = cam.transform.position;
-            refractionCamera.transform.rotation = cam.transform.rotation;
-            refractionCamera.Render();
-            GetComponent<Renderer>().sharedMaterial.SetTexture("_RefractionTex", _mRefractionTexture);
-        }
+//        // Render refraction
+//        if (mode >= WaterMode.Refractive) {
+//            refractionCamera.worldToCameraMatrix = cam.worldToCameraMatrix;
+//
+//            // Setup oblique projection matrix so that near plane is our reflection
+//            // plane. This way we clip everything below/above it for free.
+//            Vector4 clipPlane = CameraSpacePlane(refractionCamera, pos, normal, -1.0f);
+//            refractionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
+//
+//            // Set custom culling matrix from the current camera
+//            refractionCamera.cullingMatrix = cam.projectionMatrix * cam.worldToCameraMatrix;
+//
+//            refractionCamera.cullingMask = ~(1 << 4) & RefractLayers.value; // never render water layer
+//            refractionCamera.targetTexture = _mRefractionTexture;
+//            refractionCamera.transform.position = cam.transform.position;
+//            refractionCamera.transform.rotation = cam.transform.rotation;
+//            refractionCamera.Render();
+//            GetComponent<Renderer>().sharedMaterial.SetTexture("_RefractionTex", _mRefractionTexture);
+//        }
 
         // Restore pixel light count
         if (DisablePixelLights) {
@@ -190,9 +214,10 @@ public class Water : MonoBehaviour {
             DestroyImmediate((kvp.Value).gameObject);
         }
         _mReflectionCameras.Clear();
-        foreach (var kvp in _mRefractionCameras) {
-            DestroyImmediate((kvp.Value).gameObject);
-        }
+//        foreach (var kvp in _mRefractionCameras) {
+//            DestroyImmediate((kvp.Value).gameObject);
+//        }
+        Cleanup();
         _mRefractionCameras.Clear();
     }
 
@@ -293,37 +318,37 @@ public class Water : MonoBehaviour {
             }
         }
 
-        if (mode >= WaterMode.Refractive) {
-            // Refraction render texture
-            if (!_mRefractionTexture || _mOldRefractionTextureSize != TextureSize) {
-                if (_mRefractionTexture) {
-                    DestroyImmediate(_mRefractionTexture);
-                }
-                _mRefractionTexture =
-                    new RenderTexture(TextureSize, TextureSize, 24) {
-                        name = "__WaterRefraction" + GetInstanceID(),
-                        isPowerOfTwo = true,
-                        hideFlags = HideFlags.DontSave
-                    };
-                _mOldRefractionTextureSize = TextureSize;
-            }
-
-            // Camera for refraction
-            _mRefractionCameras.TryGetValue(currentCamera, out refractionCamera);
-            if (!refractionCamera) // catch both not-in-dictionary and in-dictionary-but-deleted-GO
-            {
-                GameObject go =
-                    new GameObject("Water Refr Camera id" + GetInstanceID() + " for " + currentCamera.GetInstanceID(),
-                        typeof(Camera), typeof(Skybox));
-                refractionCamera = go.GetComponent<Camera>();
-                refractionCamera.enabled = false;
-                refractionCamera.transform.position = transform.position;
-                refractionCamera.transform.rotation = transform.rotation;
-                refractionCamera.gameObject.AddComponent<FlareLayer>();
-                go.hideFlags = HideFlags.HideAndDontSave;
-                _mRefractionCameras[currentCamera] = refractionCamera;
-            }
-        }
+//        if (mode >= WaterMode.Refractive) {
+//            // Refraction render texture
+//            if (!_mRefractionTexture || _mOldRefractionTextureSize != TextureSize) {
+//                if (_mRefractionTexture) {
+//                    DestroyImmediate(_mRefractionTexture);
+//                }
+//                _mRefractionTexture =
+//                    new RenderTexture(TextureSize, TextureSize, 16) {
+//                        name = "__WaterRefraction" + GetInstanceID(),
+//                        isPowerOfTwo = true,
+//                        hideFlags = HideFlags.DontSave
+//                    };
+//                _mOldRefractionTextureSize = TextureSize;
+//            }
+//
+//            // Camera for refraction
+//            _mRefractionCameras.TryGetValue(currentCamera, out refractionCamera);
+//            if (!refractionCamera) // catch both not-in-dictionary and in-dictionary-but-deleted-GO
+//            {
+//                GameObject go =
+//                    new GameObject("Water Refr Camera id" + GetInstanceID() + " for " + currentCamera.GetInstanceID(),
+//                        typeof(Camera), typeof(Skybox));
+//                refractionCamera = go.GetComponent<Camera>();
+//                refractionCamera.enabled = false;
+//                refractionCamera.transform.position = transform.position;
+//                refractionCamera.transform.rotation = transform.rotation;
+//                refractionCamera.gameObject.AddComponent<FlareLayer>();
+//                go.hideFlags = HideFlags.HideAndDontSave;
+//                _mRefractionCameras[currentCamera] = refractionCamera;
+//            }
+//        }
     }
 
     WaterMode GetWaterMode() {

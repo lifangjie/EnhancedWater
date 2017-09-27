@@ -10,7 +10,7 @@ Shader "Custom/WaterShaderTest" {
 		_WaterColor("Simple water color", COLOR) = (.172, .463, .435, 1)
 		_HorizonColor("Simple water horizon color", COLOR) = (.172, .463, .435, 1)
 		[HideInInspector] _ReflectionTex("Internal Reflection", 2D) = "Blue" {}
-		[HideInInspector] _RefractionTex("Internal Refraction", 2D) = "Blue" {}
+		//[HideInInspector] _RefractionTex("Internal Refraction", 2D) = "Blue" {}
 
 		_GerstnerIntensity("Per vertex displacement", Float) = 1.0
 		_GAmplitude ("Wave Amplitude", Vector) = (0.3 ,0.35, 0.25, 0.25)
@@ -147,7 +147,7 @@ Shader "Custom/WaterShaderTest" {
 				o.bumpuv = o.worldPos.xzxz * _WaveScale4 + _WaveOffset;
 
 				#if defined(HAS_REFLECTION) || defined(HAS_REFRACTION)
-				o.ref = ComputeScreenPos(o.pos);
+				o.ref = ComputeGrabScreenPos(o.pos);
 				//TRANSFER_VERTEX_TO_FRAGMENT(o);
 				o.worldPos.w = -UnityObjectToViewPos(v.vertex).z;
 				#endif
@@ -204,7 +204,8 @@ Shader "Custom/WaterShaderTest" {
 				fixed fade = saturate((sceneZ - partZ) / _Transparency); 
 
 				fixed4 uv2 = i.ref; uv2.xy += bump.xz * _RefrDistort;
-				fixed4 refr = fixed4(tex2Dproj(_RefractionTex, UNITY_PROJ_COORD(uv2)).rgb, 1);
+				//fixed4 refr = fixed4(tex2Dproj(_RefractionTex, UNITY_PROJ_COORD(uv2)).rgb, 1);
+				fixed4 refr = fixed4(tex2Dproj(_RefractionTex, uv2));
                 //refr = refr * _WaterColor;
 				refr = lerp(refr, _WaterColor, fade);
 				#endif
@@ -233,10 +234,10 @@ Shader "Custom/WaterShaderTest" {
 				//color = color * lerp(atten, 1, 0.98);
 				//#endif
 				//return fixed4(fresnel, 0, 0, 1);
-				//return refl;
 				//color = lerp(color, refr, 1-fade);
 				#if defined(WATER_REFRACTIVE)
-				return fixed4(fade,0,0,1);
+				return refr;
+				//return fixed4(fade,0,0,1);
                 //return fixed4(specular * 15, 1);
 				#endif
 
