@@ -27,15 +27,17 @@ Shader "Custom/WaterShaderTest" {
 
 
 	SubShader{
-		Tags{ "WaterMode"="Refractive" "IgnoreProjector"="True" "RenderType"="Opaque" "RenderQueue"="Transparent" }
+		Tags{ "WaterMode"="Refractive" "IgnoreProjector"="True" "LightMode"="ForwardBase" "RenderType"="Opaque" "Queue"="Transparent" }
 		Pass{
-			Lighting On
-			//ZWrite Off
+			//Lighting On
+			//ZWrite On
 			//ZTest Off
 			CGPROGRAM
 			#pragma target 3.0
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma multi_compile_fwdadd_fullshadows
+			//#pragma multi_compile_fwdbase
 			#pragma multi_compile WATER_REFRACTIVE WATER_REFLECTIVE WATER_SIMPLE
 			#pragma multi_compile GERSTNER_ON GERSTNER_OFF
 
@@ -49,9 +51,10 @@ Shader "Custom/WaterShaderTest" {
 
 
 			#include "UnityCG.cginc"
+			//#include "UnityStandardCore.cginc"
 			#include "AutoLight.cginc"
 			#include "Lighting.cginc"
-			#include "Tessellation.cginc"
+			//#include "Tessellation.cginc"
 
 			uniform half4 _WaveScale4;
 			uniform half4 _WaveOffset;
@@ -81,29 +84,16 @@ Shader "Custom/WaterShaderTest" {
 			};
 
 			struct v2f {
-				half4 pos: SV_POSITION;
+				half4 pos : SV_POSITION;
 				half4 bumpuv : TEXCOORD0;
 				half4 worldPos : TEXCOORD1;
 				half3 worldNormal : TEXCOORD2;
 				#if defined(HAS_REFLECTION) || defined(HAS_REFRACTION)
 				half4 ref : TEXCOORD3;
 				#endif
+				LIGHTING_COORDS(5, 6)
+				//SHADOW_COORDS(6)//阴影坐标  
 			};
-
-//
-//			float _Tess;
-//
-//			float4 tessDistance (appdata v0, appdata v1, appdata v2) {
-//				float minDist = 10.0;
-//				float maxDist = 25.0;
-//				return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _Tess);
-//			}
-//			
-//			float4 tesshalf()
-//			{
-//				return _Tess;
-//			}
-
 
 			v2f vert(appdata v)
 			{
@@ -150,6 +140,8 @@ Shader "Custom/WaterShaderTest" {
 				o.worldPos.w = -UnityObjectToViewPos(v.vertex).z;
 				#endif
 				//o.projPos = o.ref;
+				//TRANSFER_SHADOW(o);
+				TRANSFER_VERTEX_TO_FRAGMENT(o);
 				return o;
 			}
 
@@ -174,7 +166,20 @@ Shader "Custom/WaterShaderTest" {
 
 			half4 frag(v2f i) : SV_Target
 			{
-			
+				
+				//-------------------------------------------
+				//			    UnityLight mainLight = MainLight();  
+				//  
+				//                //设置阴影的衰减系数  
+				//                half atten = SHADOW_ATTENUATION(i);  
+				//  
+				//                //计算全局光照  
+				//                half occlusion = Occlusion(i.ref.xy);  
+				//                UnityGI gi = FragmentGI (s, occlusion, i.ambientOrLightmapUV, atten, mainLight);  
+				//                
+				//half atten = LIGHT_ATTENUATION(i);
+				//UNITY_LIGHT_ATTENUATION(atten, i, i.worldPos.xyz);
+				//-------------------------------------------
 				half3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
 
 				// combine two scrolling bumpmaps into one
@@ -226,21 +231,58 @@ Shader "Custom/WaterShaderTest" {
 				//#endif
 				//return half4(fresnel, 0, 0, 1);
 				//color = lerp(color, refr, 1-fade);
-				#if defined(WATER_REFRACTIVE)
+				//#if defined(WATER_REFRACTIVE)
 				//return refr;
 				//return half4(fresnel,0,0,1);
-				return half4(fade,0,0,1);
 				//return half4(specular * 15, 1);
-				#endif
+				//#endif
+				
+				//half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflect(-viewDir, i.worldNormal));
+                // decode cubemap data into actual color
+                //half3 skyColor = DecodeHDR (skyData, unity_SpecCube0_HDR);
 
-				return color;
+				//return half4(skyColor,1);
+				return half4(atten, 0, 0,1);
+				//return color;
 				//return refl;
 				//return half4(i.worldNormal, 1);
 				//return half4(atten, 0, 0, 1);
 			}
 			ENDCG
-
 		}
+UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
+//Pass
+//{
+//Tags {"LightMode"="ShadowCaster"}
+//
+//CGPROGRAM
+//#pragma vertex vert
+//#pragma fragment frag
+//#pragma target 2.0
+//#pragma multi_compile_shadowcaster
+//#pragma multi_compile_instancing // allow instanced shadow pass for most of the shaders
+//#include "UnityCG.cginc"
+//
+//struct v2f { 
+//	V2F_SHADOW_CASTER;
+//	UNITY_VERTEX_OUTPUT_STEREO
+//};
+//
+//v2f vert( appdata_base v )
+//{
+//	v2f o;
+//	UNITY_SETUP_INSTANCE_ID(v);
+//	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+//	TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+//	return o;
+//}
+//
+//float4 frag( v2f i ) : SV_Target
+//{
+//	SHADOW_CASTER_FRAGMENT(i)
+//}
+//ENDCG
+//        }
 	}
-	//FallBack "VertexLit"
+	//FallBack "Diffuse"
 }

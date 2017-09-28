@@ -12,7 +12,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -85,6 +85,7 @@ Material:
     - _Parallax: 0.02
     - _ReflDistort: 0.44
     - _RefrDistort: 0.4
+    - _Shininess: 0.7
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -96,6 +97,7 @@ Material:
     m_Colors:
     - WaveSpeed: {r: 19, g: 9, b: -16, a: -7}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Emission: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GAmplitude: {r: 0.06, g: 0.07, b: 0.05, a: 0.05}
     - _GDirectionAB: {r: 0.3, g: 0.85, b: 0.85, a: 0.25}
@@ -105,4 +107,5 @@ Material:
     - _GSteepness: {r: 1, g: 1, b: 1, a: 1}
     - _HorizonColor: {r: 0.172, g: 0.463, b: 0.435, a: 1}
     - _RefrColor: {r: 0.34, g: 0.85, b: 0.92, a: 1}
+    - _SpecColor: {r: 1, g: 1, b: 1, a: 1}
     - _WaterColor: {r: 0.172, g: 0.463, b: 0.435, a: 1}

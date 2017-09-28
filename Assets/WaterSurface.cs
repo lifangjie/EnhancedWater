@@ -51,6 +51,7 @@ public class WaterSurface : MonoBehaviour {
         Cleanup();
     }
 
+    
 
     // This is called when it's known that the object will be rendered by some
     // camera. We render reflections / refractions and do other updates here.
