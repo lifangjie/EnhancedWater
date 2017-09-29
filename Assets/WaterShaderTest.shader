@@ -27,8 +27,104 @@ Shader "Custom/WaterShaderTest" {
 
 
 	SubShader{
-		Tags{ "WaterMode"="Refractive" "IgnoreProjector"="True" "LightMode"="ForwardBase" "RenderType"="Opaque" "Queue"="Transparent" }
+
+				Tags{ "WaterMode"="Refractive" "IgnoreProjector"="True" "RenderType"="Opaque" }
+//		Pass {
+//			Name "ShadowCaster"
+//			Tags { "LightMode"="ShadowCaster" }
+//
+//			ZWrite On
+//			ZTest LEqual
+//			//ZTest Never
+//			//ZWrite On
+//
+//			CGPROGRAM
+//			#pragma target 3.0
+//
+//			// -------------------------------------
+//
+//
+//			//#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
+//			#pragma shader_feature _METALLICGLOSSMAP
+//			#pragma shader_feature _PARALLAXMAP
+//			#pragma multi_compile_shadowcaster
+//			#pragma multi_compile_instancing
+//			#pragma multi_compile GERSTNER_ON GERSTNER_OFF
+//
+//			// Uncomment the following line to enable dithering LOD crossfade. Note: there are more in the file to uncomment for other passes.
+//			//#pragma multi_compile _ LOD_FADE_CROSSFADE
+//
+//			#pragma vertex vert
+//			#pragma fragment fragShadowCaster
+//
+//			#include "UnityStandardShadow.cginc"
+//
+//			#if defined (GERSTNER_ON)
+//			#define WATER_VERTEX_DISPLACEMENT_ON
+//			#include "WaterInclude.cginc"
+//			uniform half4 _GAmplitude;
+//			uniform half4 _GFrequency;
+//			uniform half4 _GSteepness;
+//			uniform half4 _GSpeed;
+//			uniform half4 _GDirectionAB;
+//			uniform half4 _GDirectionCD;
+//			half _OffsetX, _OffsetZ, _Distance;
+//			half _WaveAmplitude;
+//			half _xImpact, _zImpact;
+//					  #endif
+//
+//			void vert(VertexInput v,
+//						  #ifdef UNITY_STANDARD_USE_SHADOW_OUTPUT_STRUCT
+//				out VertexOutputShadowCaster o,
+//						  #endif
+//						  #ifdef UNITY_STANDARD_USE_STEREO_SHADOW_OUTPUT_STRUCT
+//				out VertexOutputStereoShadowCaster os,
+//						  #endif
+//				out float4 opos : SV_POSITION)
+//			{
+//							  #if defined (GERSTNER_ON)
+//				half3 worldPos = mul(unity_ObjectToWorld, v.vertex);
+//				half3 vtxForAni = (worldPos).xzz;
+//
+//				half3 nrml;
+//				half3 offsets;
+//				Gerstner (
+//								  offsets, nrml, v.vertex.xyz, vtxForAni,                     // offsets, nrml will be written
+//								  _GAmplitude,                                                // amplitude
+//								  _GFrequency,                                                // frequency
+//								  _GSteepness,                                                // steepness
+//								  _GSpeed,                                                    // speed
+//								  _GDirectionAB,                                              // direction # 1, 2
+//								  _GDirectionCD                                               // direction # 3, 4
+//								  );
+//
+//				v.vertex.xyz += offsets;
+//				v.normal = nrml;
+//							  #endif
+//
+//				UNITY_SETUP_INSTANCE_ID(v);
+//							  #ifdef UNITY_STANDARD_USE_STEREO_SHADOW_OUTPUT_STRUCT
+//				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(os);
+//							  #endif
+//				TRANSFER_SHADOW_CASTER_NOPOS(o,opos)
+//							  #if defined(UNITY_STANDARD_USE_SHADOW_UVS)
+//				o.tex = TRANSFORM_TEX(v.uv0, _MainTex);
+//
+//							  #ifdef _PARALLAXMAP
+//				TANGENT_SPACE_ROTATION;
+//				half3 viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
+//				o.tangentToWorldAndParallax[0].w = viewDirForParallax.x;
+//				o.tangentToWorldAndParallax[1].w = viewDirForParallax.y;
+//				o.tangentToWorldAndParallax[2].w = viewDirForParallax.z;
+//							  #endif
+//							  #endif
+//			}
+//
+//
+//			ENDCG
+//		}
 		Pass{
+			Tags{"LightMode"="ForwardBase" }
 			//Lighting On
 			//ZWrite On
 			//ZTest Off
@@ -92,7 +188,8 @@ Shader "Custom/WaterShaderTest" {
 				half4 ref : TEXCOORD3;
 				#endif
 				LIGHTING_COORDS(5, 6)
-				//SHADOW_COORDS(6)//阴影坐标  
+				//unityShadowCoord4 _LightCoord : TEXCOORD5;
+				//unityShadowCoord4 _ShadowCoord : TEXCOORD6;
 			};
 
 			v2f vert(appdata v)
@@ -106,13 +203,13 @@ Shader "Custom/WaterShaderTest" {
 				half3 nrml;
 				half3 offsets;
 				Gerstner (
-					offsets, nrml, v.vertex.xyz, vtxForAni,						// offsets, nrml will be written
-					_GAmplitude,												// amplitude
-					_GFrequency,												// frequency
-					_GSteepness,												// steepness
-					_GSpeed,													// speed
-					_GDirectionAB,												// direction # 1, 2
-					_GDirectionCD												// direction # 3, 4
+					offsets, nrml, v.vertex.xyz, vtxForAni,                     // offsets, nrml will be written
+					_GAmplitude,                                                // amplitude
+					_GFrequency,                                                // frequency
+					_GSteepness,                                                // steepness
+					_GSpeed,                                                    // speed
+					_GDirectionAB,                                              // direction # 1, 2
+					_GDirectionCD                                               // direction # 3, 4
 					);
 				
 				v.vertex.xyz += offsets;
@@ -125,7 +222,6 @@ Shader "Custom/WaterShaderTest" {
 					o.worldNormal += value;
 				}
 				#else
-				o.worldNormal = half3(0,1,0);
 				#endif
 
 				// Finish transforming the vetex by applying the projection matrix
@@ -140,8 +236,8 @@ Shader "Custom/WaterShaderTest" {
 				o.worldPos.w = -UnityObjectToViewPos(v.vertex).z;
 				#endif
 				//o.projPos = o.ref;
-				//TRANSFER_SHADOW(o);
 				TRANSFER_VERTEX_TO_FRAGMENT(o);
+				//o._ShadowCoord = ComputeGrabScreenPos(o.pos);
 				return o;
 			}
 
@@ -166,9 +262,9 @@ Shader "Custom/WaterShaderTest" {
 
 			half4 frag(v2f i) : SV_Target
 			{
-				
+
 				//-------------------------------------------
-				//			    UnityLight mainLight = MainLight();  
+				//              UnityLight mainLight = MainLight();  
 				//  
 				//                //设置阴影的衰减系数  
 				//                half atten = SHADOW_ATTENUATION(i);  
@@ -226,9 +322,10 @@ Shader "Custom/WaterShaderTest" {
 				color = lerp(_WaterColor, _HorizonColor, fresnel);
 				#endif
 
-				//#if HAS_REFLECTION
+				#if HAS_REFLECTION
 				//color = color * lerp(atten, 1, 0.98);
-				//#endif
+				return half4(atten, 0, 0, 1);
+				#endif
 				//return half4(fresnel, 0, 0, 1);
 				//color = lerp(color, refr, 1-fade);
 				//#if defined(WATER_REFRACTIVE)
@@ -238,51 +335,181 @@ Shader "Custom/WaterShaderTest" {
 				//#endif
 				
 				//half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflect(-viewDir, i.worldNormal));
-                // decode cubemap data into actual color
-                //half3 skyColor = DecodeHDR (skyData, unity_SpecCube0_HDR);
+				// decode cubemap data into actual color
+				//half3 skyColor = DecodeHDR (skyData, unity_SpecCube0_HDR);
 
 				//return half4(skyColor,1);
-				return half4(atten, 0, 0,1);
-				//return color;
+				return color;
 				//return refl;
 				//return half4(i.worldNormal, 1);
 				//return half4(atten, 0, 0, 1);
 			}
 			ENDCG
 		}
-UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
-//Pass
-//{
-//Tags {"LightMode"="ShadowCaster"}
+			      Pass
+		      {
+			          Tags {"LightMode"="ShadowCaster"}
+			
+			          ZWrite On ZTest LEqual
+			
+			
+			          CGPROGRAM
+			          #pragma vertex vert
+			          #pragma fragment frag
+			          #pragma target 3.0
+			          #pragma multi_compile_shadowcaster
+			          #pragma multi_compile_instancing // allow instanced shadow pass for most of the shaders
+			          #pragma multi_compile GERSTNER_ON GERSTNER_OFF
+			          #include "UnityCG.cginc"
+			
+			          #if defined (GERSTNER_ON)
+			          #define WATER_VERTEX_DISPLACEMENT_ON
+			          #include "WaterInclude.cginc"
+			          uniform half4 _GAmplitude;
+			          uniform half4 _GFrequency;
+			          uniform half4 _GSteepness;
+			          uniform half4 _GSpeed;
+			          uniform half4 _GDirectionAB;
+			          uniform half4 _GDirectionCD;
+			          half _OffsetX, _OffsetZ, _Distance;
+			          half _WaveAmplitude;
+			          half _xImpact, _zImpact;
+			          #endif
+			
+			          struct v2f {
+				              V2F_SHADOW_CASTER;
+				              UNITY_VERTEX_OUTPUT_STEREO
+				          };
+				
+				          v2f vert( appdata_base v )
+				          {
+					              v2f o;
+					              #if defined (GERSTNER_ON)
+					              half3 worldPos = mul(unity_ObjectToWorld, v.vertex);
+					              half3 vtxForAni = (worldPos).xzz;
+					              
+					              half3 nrml;
+					              half3 offsets;
+					              Gerstner(
+					              offsets, nrml, v.vertex.xyz, vtxForAni,                     // offsets, nrml will be written
+					              _GAmplitude,                                                // amplitude
+					              _GFrequency,                                                // frequency
+					              _GSteepness,                                                // steepness
+					              _GSpeed,                                                    // speed
+					              _GDirectionAB,                                              // direction # 1, 2
+					              _GDirectionCD                                               // direction # 3, 4
+					              );
+					
+					              v.vertex.xyz += offsets;
+					              v.normal = nrml;
+					              #endif
+					              
+					              UNITY_SETUP_INSTANCE_ID(v);
+					              UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+					              TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+					              return o;
+					          }
+					
+					          float4 frag( v2f i ) : SV_Target
+					          {
+						              SHADOW_CASTER_FRAGMENT(i)
+						          }
+						          ENDCG
+						      }	
+		//      UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
+
+//						Pass {
+//							Name "ShadowCaster"
+//							Tags { "LightMode" = "ShadowCaster" }
 //
-//CGPROGRAM
-//#pragma vertex vert
-//#pragma fragment frag
-//#pragma target 2.0
-//#pragma multi_compile_shadowcaster
-//#pragma multi_compile_instancing // allow instanced shadow pass for most of the shaders
-//#include "UnityCG.cginc"
+//							ZWrite On ZTest LEqual
+//							//ZWrite On
 //
-//struct v2f { 
-//	V2F_SHADOW_CASTER;
-//	UNITY_VERTEX_OUTPUT_STEREO
-//};
+//							CGPROGRAM
+//						#pragma target 3.0
 //
-//v2f vert( appdata_base v )
-//{
-//	v2f o;
-//	UNITY_SETUP_INSTANCE_ID(v);
-//	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-//	TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
-//	return o;
-//}
+//						// -------------------------------------
 //
-//float4 frag( v2f i ) : SV_Target
-//{
-//	SHADOW_CASTER_FRAGMENT(i)
-//}
-//ENDCG
-//        }
-	}
-	//FallBack "Diffuse"
-}
+//
+//						//#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
+//						#pragma shader_feature _METALLICGLOSSMAP
+//						#pragma shader_feature _PARALLAXMAP
+//						#pragma multi_compile_shadowcaster
+//						#pragma multi_compile_instancing
+//						#pragma multi_compile GERSTNER_ON GERSTNER_OFF
+//
+//						// Uncomment the following line to enable dithering LOD crossfade. Note: there are more in the file to uncomment for other passes.
+//						//#pragma multi_compile _ LOD_FADE_CROSSFADE
+//
+//						#pragma vertex vert
+//						#pragma fragment fragShadowCaster
+//
+//						#include "UnityStandardShadow.cginc"
+//
+//						#if defined (GERSTNER_ON)
+//					  #define WATER_VERTEX_DISPLACEMENT_ON
+//					  #include "WaterInclude.cginc"
+//							uniform half4 _GAmplitude;
+//							uniform half4 _GFrequency;
+//							uniform half4 _GSteepness;
+//							uniform half4 _GSpeed;
+//							uniform half4 _GDirectionAB;
+//							uniform half4 _GDirectionCD;
+//							half _OffsetX, _OffsetZ, _Distance;
+//							half _WaveAmplitude;
+//							half _xImpact, _zImpact;
+//					  #endif
+//
+//							void vert(VertexInput v,
+//						  #ifdef UNITY_STANDARD_USE_SHADOW_OUTPUT_STRUCT
+//								out VertexOutputShadowCaster o,
+//						  #endif
+//						  #ifdef UNITY_STANDARD_USE_STEREO_SHADOW_OUTPUT_STRUCT
+//								out VertexOutputStereoShadowCaster os,
+//						  #endif
+//								out float4 opos : SV_POSITION)
+//							{
+//							  #if defined (GERSTNER_ON)
+//								half3 worldPos = mul(unity_ObjectToWorld, v.vertex);
+//								half3 vtxForAni = (worldPos).xzz;
+//
+//								half3 nrml;
+//								half3 offsets;
+//								Gerstner (
+//								  offsets, nrml, v.vertex.xyz, vtxForAni,                     // offsets, nrml will be written
+//								  _GAmplitude,                                                // amplitude
+//								  _GFrequency,                                                // frequency
+//								  _GSteepness,                                                // steepness
+//								  _GSpeed,                                                    // speed
+//								  _GDirectionAB,                                              // direction # 1, 2
+//								  _GDirectionCD                                               // direction # 3, 4
+//								  );
+//
+//								v.vertex.xyz += offsets;
+//								v.normal = nrml;
+//							  #endif
+//
+//								UNITY_SETUP_INSTANCE_ID(v);
+//							  #ifdef UNITY_STANDARD_USE_STEREO_SHADOW_OUTPUT_STRUCT
+//								UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(os);
+//							  #endif
+//								TRANSFER_SHADOW_CASTER_NOPOS(o,opos)
+//							  #if defined(UNITY_STANDARD_USE_SHADOW_UVS)
+//								o.tex = TRANSFORM_TEX(v.uv0, _MainTex);
+//
+//							  #ifdef _PARALLAXMAP
+//								TANGENT_SPACE_ROTATION;
+//								half3 viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
+//								o.tangentToWorldAndParallax[0].w = viewDirForParallax.x;
+//								o.tangentToWorldAndParallax[1].w = viewDirForParallax.y;
+//								o.tangentToWorldAndParallax[2].w = viewDirForParallax.z;
+//							  #endif
+//							  #endif
+//							}
+//
+//
+//							ENDCG
+//						}
+					}
+					//FallBack "Diffuse"
+				}

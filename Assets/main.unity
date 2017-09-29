@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 31181805}
-  m_IndirectSpecularColor: {r: 0.4446017, g: 0.4881103, b: 0.54104304, a: 1}
+  m_IndirectSpecularColor: {r: 0.16629976, g: 0.20320085, b: 0.25401565, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -230,7 +230,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 1
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -256,8 +256,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 295394385}
-  m_LocalRotation: {x: 0.009070678, y: 0.98970586, z: -0.07319424, w: 0.12264875}
-  m_LocalPosition: {x: 34.01007, y: 9.467453, z: 92.04233}
+  m_LocalRotation: {x: -0.04466746, y: 0.9546474, z: -0.1888966, w: -0.22576788}
+  m_LocalPosition: {x: 42.090405, y: 10.6026, z: 89.20707}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -344,7 +344,7 @@ GameObject:
   - component: {fileID: 811960637}
   - component: {fileID: 811960636}
   - component: {fileID: 811960635}
-  - component: {fileID: 811960638}
+  - component: {fileID: 811960634}
   m_Layer: 4
   m_Name: Water
   m_TagString: Untagged
@@ -352,6 +352,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &811960634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 811960633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 605fbfe2544143998a00534f4dc70c22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurrentGestner: 1
+  CurrentWaterMode: 2
+  DisablePixelLights: 1
+  TextureSize: 512
+  ClipPlaneOffset: 0.07
+  ReflectLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  RefractLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!23 &811960635
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -400,31 +422,12 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 37.6, y: 6.06, z: 82.5}
+  m_LocalPosition: {x: 37.6, y: 6.27, z: 82.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &811960638
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 811960633}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c1cd818f22b4908894cc8ddaf3d9ec6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CurrentGestner: 0
-  CurrentWaterMode: 2
-  DisablePixelLights: 1
-  TextureSize: 256
-  ClipPlaneOffset: 0.07
-  ReflectLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &1840944308
 GameObject:
   m_ObjectHideFlags: 0
