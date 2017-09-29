@@ -8,9 +8,9 @@
 		WaveSpeed("Wave speed (map1 x,y; map2 x,y)", Vector) = (9,5,-7,-4)
 		_WaterColor("Simple water color", COLOR) = (.172, .463, .435, 1)
 		_HorizonColor("Simple water horizon color", COLOR) = (.172, .463, .435, 1)
-		[HideInInspector] _ReflectionTex("Internal Reflection", 2D) = "Blue" {}
-		[HideInInspector] _RefractionTex("Internal Refraction", 2D) = "Blue" {}
-		[HideInInspector] _DepthTex("Internal Depth", 2D) = "Blue" {}
+		//[HideInInspector] _ReflectionTex("Internal Reflection", 2D) = "Blue" {}
+		//[HideInInspector] _RefractionTex("Internal Refraction", 2D) = "Blue" {}
+		//[HideInInspector] _DepthTex("Internal Depth", 2D) = "Blue" {}
 
 		_GerstnerIntensity("Per vertex displacement", Float) = 1.0
 		_GAmplitude ("Wave Amplitude", Vector) = (0.3 ,0.35, 0.25, 0.25)
