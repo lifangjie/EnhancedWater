@@ -1,4 +1,4 @@
-﻿Shader "Custom/WaterShader" {
+Shader "Custom/WaterShaderTest" {
 	Properties{
 		_Transparency("Water transparency", Float) = 50.0
 		[NoScaleOffset] _BumpMap("Normalmap ", 2D) = "bump" {}
@@ -220,7 +220,10 @@
 
 				#if HAS_REFRACTION
                 //return refr;
-				//return half4(fade,0,0,1);
+				half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflect(-viewDir, i.worldNormal));
+				// decode cubemap data into actual color
+				half3 skyColor = DecodeHDR (skyData, unity_SpecCube0_HDR);
+				return half4(skyColor,1);
                 #endif
 				return color;
 			}

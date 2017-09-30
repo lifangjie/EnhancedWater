@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode] // Make water live-update even when not in play mode
-public class WaterSurface : MonoBehaviour {
+public class WaterTest: MonoBehaviour {
     public enum WaterMode {
         Simple = 0,
         Reflective = 1,

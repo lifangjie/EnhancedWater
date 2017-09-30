@@ -1,4 +1,4 @@
 todo :
 1.tesselllation
-2.using reflection probes
-3.fft waves
+2.fft waves
+3.try ray tracing reflection and refraction

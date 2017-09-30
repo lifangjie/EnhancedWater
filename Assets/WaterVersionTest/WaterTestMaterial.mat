@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: WaterMaterial
-  m_Shader: {fileID: 4800000, guid: cfbbac285f56f1644883b16d70c37170, type: 3}
+  m_Name: WaterTestMaterial
+  m_Shader: {fileID: 4800000, guid: 5c8f830f971d4d14fb19c5b3e8295a4b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
