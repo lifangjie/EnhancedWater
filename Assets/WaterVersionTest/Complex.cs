@@ -1,4 +1,6 @@
-﻿namespace WaterVersionTest {
+﻿using System;
+
+namespace WaterVersionTest {
     public class Complex {
         #region 字段
 
