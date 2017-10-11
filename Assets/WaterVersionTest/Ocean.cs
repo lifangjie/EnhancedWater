@@ -9,6 +9,9 @@ namespace WaterVersionTest {
         private Vector3[] _vertices;
         private Vector3[] _normals;
 
+        private Complex[] _htilde0;
+        private Complex[] _htilde0mk_conj;
+
         private void Awake() {
             Mesh mesh = GetComponent<MeshFilter>().sharedMesh;
             int triangleIndex = 0;
@@ -17,10 +20,15 @@ namespace WaterVersionTest {
             int[] triangles = new int[(Size - 1) * (Size - 1) * 6];
             _normals = new Vector3[Size * Size];
 
+            
             for (int i = 0; i < Size; i++) {
                 for (int j = 0; j < Size; j++) {
                     // set vertices
                     int index = i * Size + j;
+                    
+            htilde0[index]        = hTilde_0( j,  i);
+            htilde0mk_conj[index] = hTilde_0(-j, -i).conj();
+                    
                     _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / Size;
                     _originalVertices[index].x = _vertices[index].y = 0;
                     _originalVertices[index].x = _vertices[index].z = (j - Size / 2) * Length / Size;
@@ -145,6 +153,22 @@ namespace WaterVersionTest {
             height = (float) h.Real;
             displayment = D;
             normal = n;
+        }
+        //
+        complex gaussianRandomVariable() {
+            float x1, x2, w;
+            do {
+                x1 = 2.f * uniformRandomVariable() - 1.f;
+                x2 = 2.f * uniformRandomVariable() - 1.f;
+                w = x1 * x1 + x2 * x2;
+            } while ( w >= 1.f );
+            w = sqrt((-2.f * log(w)) / w);
+            return complex(x1 * w, x2 * w);
+        }
+        //
+        Complex hTilde_0(int n_prime, int m_prime) {
+            Complex r = new Complex(Random.);
+            return r * sqrt(phillips(n_prime, m_prime) / 2.0f);
         }
 
         Complex hTilde(float t, int n_prime, int m_prime) {
