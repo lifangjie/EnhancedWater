@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace WaterVersionTest {
@@ -19,8 +20,8 @@ namespace WaterVersionTest {
             _waterMesh = GetComponent<MeshFilter>().sharedMesh;
             int triangleIndex = 0;
             _originalVertices = new Vector3[Size * Size];
-            _vertices = new Vector3[Size * Size];
             int[] triangles = new int[(Size - 1) * (Size - 1) * 6];
+            _vertices = new Vector3[Size * Size];
             _normals = new Vector3[Size * Size];
 
             _htilde0 = new Complex[Size * Size];
@@ -38,7 +39,8 @@ namespace WaterVersionTest {
                     _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / Size;
                     _originalVertices[index].y = _vertices[index].y = 0;
                     _originalVertices[index].z = _vertices[index].z = (j - Size / 2) * Length / Size;
-                    //normals[index] = Vector3.up;
+
+                    _normals[index] = Vector3.up;
                     // set triangles
                     if (j < Size - 1 && i < Size - 1) {
                         triangles[triangleIndex + 0] = (j * Size) + i;
@@ -58,8 +60,10 @@ namespace WaterVersionTest {
                     //_newUv[index].y = j*uvStepY;
                 }
             }
+            //_waterMesh.vertices = _vertices;
             _waterMesh.vertices = _vertices;
             _waterMesh.triangles = triangles;
+            _waterMesh.normals = _normals;
             //mesh.uv = _newUv;
             //mesh.normals = _newNormals;
         }
@@ -67,9 +71,9 @@ namespace WaterVersionTest {
         private void Update() {
             //_mesh = _waterMesh;
             float lambda = -1.0f;
-            for (int m_prime = 0; m_prime < Size; m_prime++) {
-                for (int n_prime = 0; n_prime < Size; n_prime++) {
-                    var index = m_prime * Size + n_prime;
+            for (int i = 0; i < Size; i++) {
+                for (int j = 0; j < Size; j++) {
+                    var index = i * Size + j;
 
                     var x = new Vector2(_vertices[index].x, _vertices[index].z);
 
@@ -78,10 +82,13 @@ namespace WaterVersionTest {
                     Vector3 normal;
                     h_D_and_n(x, Time.realtimeSinceStartup, out height, out displayment, out normal);
 
-                    _vertices[index].y = height;
 
-                    _vertices[index].x = _originalVertices[index].x + lambda * displayment.x;
-                    _vertices[index].z = _originalVertices[index].z + lambda * displayment.y;
+                    Vector3 vertices = new Vector3() {
+                        x = _originalVertices[index].x + lambda * displayment.x,
+                        y = height,
+                        z = _originalVertices[index].z + lambda * displayment.y
+                    };
+                    _vertices[index] = vertices;
 
                     _normals[index] = normal;
 
@@ -117,52 +124,50 @@ namespace WaterVersionTest {
 //                    }
                 }
             }
-            
+
             //_waterMesh.SetVertices(new List<Vector3>(_vertices));
             _waterMesh.vertices = _vertices;
             _waterMesh.normals = _normals;
+            //_waterMesh.SetVertices(_vertices);
+            //_waterMesh.SetNormals(_normals);
             //_waterMesh.SetNormals();
         }
 
         void h_D_and_n(Vector2 x, float t, out float height, out Vector2 displayment, out Vector3 normal) {
             Complex h = new Complex(0.0f, 0.0f);
-            Vector2 D = new Vector2(0.0f, 0.0f);
-            Vector3 n = new Vector3(0.0f, 0.0f, 0.0f);
+            displayment = Vector2.zero;
+            normal = Vector3.zero;
 
-            Complex c, res, htilde_c;
-            Vector2 k;
-            float kx, kz, k_length, k_dot_x;
+            for (int i = 0; i < Size; i++) {
+                var kz = 2.0f * Mathf.PI * (i - Size / 2.0f) / Length;
+                for (int j = 0; j < Size; j++) {
+                    var kx = 2.0f * Mathf.PI * (j - Size / 2.0f) / Length;
+                    var k = new Vector2(kx, kz);
 
-            for (int m_prime = 0; m_prime < Size; m_prime++) {
-                kz = 2.0f * Mathf.PI * (m_prime - Size / 2.0f) / Length;
-                for (int n_prime = 0; n_prime < Size; n_prime++) {
-                    kx = 2.0f * Mathf.PI * (n_prime - Size / 2.0f) / Length;
-                    k = new Vector2(kx, kz);
+                    var kLength = k.magnitude;
+                    var kDotX = Vector2.Dot(k, x);
 
-                    k_length = k.magnitude;
-                    k_dot_x = Vector2.Dot(k, x);
+                    var c = new Complex(Mathf.Cos(kDotX), Mathf.Sin(kDotX));
+                    var htildeC = HTilde(t, j, i) * c;
 
-                    c = new Complex(Mathf.Cos(k_dot_x), Mathf.Sin(k_dot_x));
-                    htilde_c = hTilde(t, n_prime, m_prime) * c;
+                    h = h + htildeC;
 
-                    h = h + htilde_c;
+                    normal = normal + new Vector3(-kx * htildeC.Imaginary, 0.0f, -kz * htildeC.Imaginary);
 
-                    n = n + new Vector3(-kx * (float) htilde_c.Imaginary, 0.0f, -kz * (float) htilde_c.Imaginary);
-
-                    if (k_length < 0.000001) continue;
-                    D = D + new Vector2(kx / k_length * (float) htilde_c.Imaginary,
-                            kz / k_length * (float) htilde_c.Imaginary);
+                    if (kLength < 0.000001) continue;
+                    displayment = displayment + new Vector2(kx / kLength * htildeC.Imaginary,
+                                      kz / kLength * htildeC.Imaginary);
                 }
             }
 
-            n = (Vector3.up - n).normalized;
+            normal = (Vector3.up - normal).normalized;
 
-            height = (float) h.Real;
-            displayment = D;
-            normal = n;
+            height = h.Real;
+            //displayment = D;
+            //normal = n;
         }
 
-        Complex gaussianRandomVariable() {
+        Complex GaussianRandomVariable() {
             float x1, x2, w;
             do {
                 x1 = 2f * Random.value - 1f;
@@ -173,56 +178,56 @@ namespace WaterVersionTest {
             return new Complex(x1 * w, x2 * w);
         }
 
-        float phillips(int n_prime, int m_prime) {
-            Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - Size) / Length, Mathf.PI * (2 * m_prime - Size) / Length);
-            float k_length = k.magnitude;
-            if (k_length < 0.000001) return 0f;
+        float Phillips(int nPrime, int mPrime) {
+            Vector2 k = new Vector2(Mathf.PI * (2 * nPrime - Size) / Length, Mathf.PI * (2 * mPrime - Size) / Length);
+            float kLength = k.magnitude;
+            if (kLength < 0.000001) return 0f;
 
-            float k_length2 = k_length * k_length;
-            float k_length4 = k_length2 * k_length2;
+            float kLength2 = kLength * kLength;
+            float kLength4 = kLength2 * kLength2;
 
-            float k_dot_w = Vector2.Dot(k.normalized, Wind.normalized);
-            float k_dot_w2 = k_dot_w * k_dot_w;
+            float kDotW = Vector2.Dot(k.normalized, Wind.normalized);
+            float kDotW2 = kDotW * kDotW;
 
-            float w_length = Wind.magnitude;
-            float L = w_length * w_length / Physics.gravity.magnitude;
-            float L2 = L * L;
+            float wLength = Wind.magnitude;
+            float l = wLength * wLength / Physics.gravity.magnitude;
+            float L2 = l * l;
 
             float damping = 0.001f;
             float l2 = L2 * damping * damping;
 
-            return A * Mathf.Exp(-1.0f / (k_length2 * L2)) / k_length4 * k_dot_w2 * Mathf.Exp(-k_length2 * l2);
+            return A * Mathf.Exp(-1.0f / (kLength2 * L2)) / kLength4 * kDotW2 * Mathf.Exp(-kLength2 * l2);
         }
 
-        float dispersion(int n_prime, int m_prime) {
-            float w_0 = 2.0f * Mathf.PI / 200.0f;
-            float kx = Mathf.PI * (2 * n_prime - Size) / Length;
-            float kz = Mathf.PI * (2 * m_prime - Size) / Length;
-            return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w_0) * w_0;
+        float Dispersion(int nPrime, int mPrime) {
+            float w0 = 2.0f * Mathf.PI / 200.0f;
+            float kx = Mathf.PI * (2 * nPrime - Size) / Length;
+            float kz = Mathf.PI * (2 * mPrime - Size) / Length;
+            return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;
         }
 
-        Complex hTilde_0(int n_prime, int m_prime) {
-            Complex r = gaussianRandomVariable();
-            return r.Multiply(Mathf.Sqrt(phillips(n_prime, m_prime) / 2.0f));
+        Complex hTilde_0(int nPrime, int mPrime) {
+            Complex r = GaussianRandomVariable();
+            return r.Multiply(Mathf.Sqrt(Phillips(nPrime, mPrime) / 2.0f));
         }
 
-        Complex hTilde(float t, int n_prime, int m_prime) {
-            int index = m_prime * Size + n_prime;
+        Complex HTilde(float t, int nPrime, int mPrime) {
+            int index = mPrime * Size + nPrime;
 
             Complex htilde0 = new Complex(_htilde0[index].Real, _htilde0[index].Imaginary);
-            Complex htilde0mkconj = new Complex(_htilde0MkConj[index].Real, _htilde0MkConj[index].Imaginary);
+            Complex htilde0Mkconj = new Complex(_htilde0MkConj[index].Real, _htilde0MkConj[index].Imaginary);
 
-            float omegat = dispersion(n_prime, m_prime) * t;
+            float omegat = Dispersion(nPrime, mPrime) * t;
 
-            float cos_ = Mathf.Cos(omegat);
-            float sin_ = Mathf.Sin(omegat);
+            float cos = Mathf.Cos(omegat);
+            float sin = Mathf.Sin(omegat);
 
-            Complex c0 = new Complex(cos_, sin_);
-            Complex c1 = new Complex(cos_, -sin_);
+            Complex c0 = new Complex(cos, sin);
+            Complex c1 = new Complex(cos, -sin);
 
-            Complex res = htilde0 * c0 + htilde0mkconj * c1;
+            Complex res = htilde0 * c0 + htilde0Mkconj * c1;
 
-            return htilde0 * c0 + htilde0mkconj * c1;
+            return htilde0 * c0 + htilde0Mkconj * c1;
         }
 
 

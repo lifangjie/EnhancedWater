@@ -1,14 +1,15 @@
 ﻿using System;
+using UnityEngine;
 
 namespace WaterVersionTest {
     public class Complex {
         #region 字段
 
         //复数实部
-        private double real = 0.0;
+        private float _real = 0.0f;
 
         //复数虚部
-        private double imaginary = 0.0;
+        private float _imaginary = 0.0f;
 
         #endregion
 
@@ -17,17 +18,17 @@ namespace WaterVersionTest {
         /// <summary>
         /// 获取或设置复数的实部
         /// </summary>
-        public double Real {
-            get { return real; }
-            set { real = value; }
+        public float Real {
+            get { return _real; }
+            set { _real = value; }
         }
 
         /// <summary>
         /// 获取或设置复数的虚部
         /// </summary>
-        public double Imaginary {
-            get { return imaginary; }
-            set { imaginary = value; }
+        public float Imaginary {
+            get { return _imaginary; }
+            set { _imaginary = value; }
         }
 
         #endregion
@@ -45,7 +46,7 @@ namespace WaterVersionTest {
         /// 只给实部赋值的构造函数，虚部将取0
         /// </summary>
         /// <param name="dbreal">实部</param>
-        public Complex(double dbreal)
+        public Complex(float dbreal)
             : this(dbreal, 0) { }
 
         /// <summary>
@@ -53,9 +54,9 @@ namespace WaterVersionTest {
         /// </summary>
         /// <param name="dbreal">实部</param>
         /// <param name="dbImage">虚部</param>
-        public Complex(double dbreal, double dbImage) {
-            real = dbreal;
-            imaginary = dbImage;
+        public Complex(float dbreal, float dbImage) {
+            _real = dbreal;
+            _imaginary = dbImage;
         }
 
         /// <summary>
@@ -63,8 +64,8 @@ namespace WaterVersionTest {
         /// </summary>
         /// <param name="other">复数</param>
         public Complex(Complex other) {
-            real = other.real;
-            imaginary = other.imaginary;
+            _real = other._real;
+            _imaginary = other._imaginary;
         }
 
         #endregion
@@ -88,13 +89,13 @@ namespace WaterVersionTest {
 
         //==的重载
         public static bool operator ==(Complex z1, Complex z2) {
-            return ((z1.real == z2.real) && (z1.imaginary == z2.imaginary));
+            return ((z1._real == z2._real) && (z1._imaginary == z2._imaginary));
         }
 
         //!=的重载
         public static bool operator !=(Complex z1, Complex z2) {
-            if (z1.real == z2.real) {
-                return (z1.imaginary != z2.imaginary);
+            if (z1._real == z2._real) {
+                return (z1._imaginary != z2._imaginary);
             }
             return true;
         }
@@ -104,25 +105,25 @@ namespace WaterVersionTest {
         /// </summary>
         /// <returns>打印字符串</returns>
         public override string ToString() {
-            if (Real == 0 && imaginary == 0) {
+            if (Real == 0 && _imaginary == 0) {
                 return string.Format("{0}", 0);
             }
-            if (Real == 0 && (imaginary != 1 && imaginary != -1)) {
-                return string.Format("{0} i", imaginary);
+            if (Real == 0 && (_imaginary != 1 && _imaginary != -1)) {
+                return string.Format("{0} i", _imaginary);
             }
-            if (imaginary == 0) {
+            if (_imaginary == 0) {
                 return string.Format("{0}", Real);
             }
-            if (imaginary == 1) {
+            if (_imaginary == 1) {
                 return string.Format("i");
             }
-            if (imaginary == -1) {
+            if (_imaginary == -1) {
                 return string.Format("- i");
             }
-            if (imaginary < 0) {
-                return string.Format("{0} - {1} i", Real, -imaginary);
+            if (_imaginary < 0) {
+                return string.Format("{0} - {1} i", Real, -_imaginary);
             }
-            return string.Format("{0} + {1} i", Real, imaginary);
+            return string.Format("{0} + {1} i", Real, _imaginary);
         }
 
         #endregion
@@ -135,8 +136,8 @@ namespace WaterVersionTest {
         /// <param name="comp">待加复数</param>
         /// <returns>返回相加后的复数</returns>
         public Complex Add(Complex comp) {
-            double x = real + comp.real;
-            double y = imaginary + comp.imaginary;
+            float x = _real + comp._real;
+            float y = _imaginary + comp._imaginary;
 
             return new Complex(x, y);
         }
@@ -147,8 +148,8 @@ namespace WaterVersionTest {
         /// <param name="comp">待减复数</param>
         /// <returns>返回相减后的复数</returns>
         public Complex Substract(Complex comp) {
-            double x = real - comp.real;
-            double y = imaginary - comp.imaginary;
+            float x = _real - comp._real;
+            float y = _imaginary - comp._imaginary;
 
             return new Complex(x, y);
         }
@@ -159,34 +160,34 @@ namespace WaterVersionTest {
         /// <param name="comp">待乘复数</param>
         /// <returns>返回相乘后的复数</returns>
         public Complex Multiply(Complex comp) {
-            double x = real * comp.real - imaginary * comp.imaginary;
-            double y = real * comp.imaginary + imaginary * comp.real;
+            float x = _real * comp._real - _imaginary * comp._imaginary;
+            float y = _real * comp._imaginary + _imaginary * comp._real;
 
             return new Complex(x, y);
         }
-        
+
         /// <summary>
         /// 复数乘法
         /// </summary>
         /// <param name="num">待乘实数</param>
         /// <returns>返回相乘后的复数</returns>
         public Complex Multiply(float num) {
-            return new Complex(real*num, imaginary * num);
+            return new Complex(_real * num, _imaginary * num);
         }
 
         /// <summary>
         /// 获取复数的模/幅度
         /// </summary>
         /// <returns>返回复数的模</returns>
-        public double GetModul() {
-            return Math.Sqrt(real * real + imaginary * imaginary);
+        public float GetModul() {
+            return Mathf.Sqrt(_real * _real + _imaginary * _imaginary);
         }
 
         /// <summary>
         /// 获取复数的相位角，取值范围（-π，π]
         /// </summary>
         /// <returns>返回复数的相角</returns>
-        public double GetAngle() {
+        public float GetAngle() {
             #region 原先求相角的实现，后发现Math.Atan2已经封装好后注释
 
             ////实部和虚部都为0
@@ -218,7 +219,7 @@ namespace WaterVersionTest {
 
             #endregion
 
-            return Math.Atan2(imaginary, real);
+            return Mathf.Atan2(_imaginary, _real);
         }
 
         /// <summary>
@@ -226,7 +227,7 @@ namespace WaterVersionTest {
         /// </summary>
         /// <returns>返回共轭复数</returns>
         public Complex Conjugate() {
-            return new Complex(this.real, -this.imaginary);
+            return new Complex(this._real, -this._imaginary);
         }
 
         #endregion
