@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace WaterVersionTest {
     public class Ocean : MonoBehaviour {
@@ -8,30 +9,35 @@ namespace WaterVersionTest {
         private Vector3[] _originalVertices;
         private Vector3[] _vertices;
         private Vector3[] _normals;
+        public Vector2 Wind = new Vector2(32, 32);
+        public float A = 0.0005f;
 
         private Complex[] _htilde0;
-        private Complex[] _htilde0mk_conj;
+        private Complex[] _htilde0MkConj;
 
         private void Awake() {
-            Mesh mesh = GetComponent<MeshFilter>().sharedMesh;
+            _waterMesh = GetComponent<MeshFilter>().sharedMesh;
             int triangleIndex = 0;
             _originalVertices = new Vector3[Size * Size];
             _vertices = new Vector3[Size * Size];
             int[] triangles = new int[(Size - 1) * (Size - 1) * 6];
             _normals = new Vector3[Size * Size];
 
-            
+            _htilde0 = new Complex[Size * Size];
+            _htilde0MkConj = new Complex[Size * Size];
+
+
             for (int i = 0; i < Size; i++) {
                 for (int j = 0; j < Size; j++) {
                     // set vertices
                     int index = i * Size + j;
-                    
-            htilde0[index]        = hTilde_0( j,  i);
-            htilde0mk_conj[index] = hTilde_0(-j, -i).conj();
-                    
+
+                    _htilde0[index] = hTilde_0(j, i);
+                    _htilde0MkConj[index] = hTilde_0(-j, -i).Conjugate();
+
                     _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / Size;
-                    _originalVertices[index].x = _vertices[index].y = 0;
-                    _originalVertices[index].x = _vertices[index].z = (j - Size / 2) * Length / Size;
+                    _originalVertices[index].y = _vertices[index].y = 0;
+                    _originalVertices[index].z = _vertices[index].z = (j - Size / 2) * Length / Size;
                     //normals[index] = Vector3.up;
                     // set triangles
                     if (j < Size - 1 && i < Size - 1) {
@@ -52,70 +58,70 @@ namespace WaterVersionTest {
                     //_newUv[index].y = j*uvStepY;
                 }
             }
-            mesh.vertices = _vertices;
-            mesh.triangles = triangles;
+            _waterMesh.vertices = _vertices;
+            _waterMesh.triangles = triangles;
             //mesh.uv = _newUv;
             //mesh.normals = _newNormals;
         }
 
         private void Update() {
             //_mesh = _waterMesh;
-            float lambda = -1.0;
-            int index;
-            vector2 x;
-            vector2 d;
-            complex_vector_normal h_d_and_n;
-            for (int m_prime = 0; m_prime < N; m_prime++) {
-                for (int n_prime = 0; n_prime < N; n_prime++) {
-                    index = m_prime * Nplus1 + n_prime;
+            float lambda = -1.0f;
+            for (int m_prime = 0; m_prime < Size; m_prime++) {
+                for (int n_prime = 0; n_prime < Size; n_prime++) {
+                    var index = m_prime * Size + n_prime;
 
-                    x = vector2(_vertices[index].x, _vertices[index].z);
+                    var x = new Vector2(_vertices[index].x, _vertices[index].z);
 
-                    h_d_and_n = h_D_and_n(x, t);
+                    float height;
+                    Vector2 displayment;
+                    Vector3 normal;
+                    h_D_and_n(x, Time.realtimeSinceStartup, out height, out displayment, out normal);
 
-                    _vertices[index].y = h_d_and_n.h.a;
+                    _vertices[index].y = height;
 
-                    _vertices[index].x = _vertices[index].ox + lambda * h_d_and_n.D.x;
-                    _vertices[index].z = _vertices[index].oz + lambda * h_d_and_n.D.y;
+                    _vertices[index].x = _originalVertices[index].x + lambda * displayment.x;
+                    _vertices[index].z = _originalVertices[index].z + lambda * displayment.y;
 
-                    _vertices[index].nx = h_d_and_n.n.x;
-                    _vertices[index].ny = h_d_and_n.n.y;
-                    _vertices[index].nz = h_d_and_n.n.z;
+                    _normals[index] = normal;
 
-                    if (n_prime == 0 && m_prime == 0) {
-                        vertices[index + N + Nplus1 * N].y = h_d_and_n.h.a;
-
-                        vertices[index + N + Nplus1 * N].x =
-                            vertices[index + N + Nplus1 * N].ox + lambda * h_d_and_n.D.x;
-                        vertices[index + N + Nplus1 * N].z =
-                            vertices[index + N + Nplus1 * N].oz + lambda * h_d_and_n.D.y;
-
-                        vertices[index + N + Nplus1 * N].nx = h_d_and_n.n.x;
-                        vertices[index + N + Nplus1 * N].ny = h_d_and_n.n.y;
-                        vertices[index + N + Nplus1 * N].nz = h_d_and_n.n.z;
-                    }
-                    if (n_prime == 0) {
-                        vertices[index + N].y = h_d_and_n.h.a;
-
-                        vertices[index + N].x = vertices[index + N].ox + lambda * h_d_and_n.D.x;
-                        vertices[index + N].z = vertices[index + N].oz + lambda * h_d_and_n.D.y;
-
-                        vertices[index + N].nx = h_d_and_n.n.x;
-                        vertices[index + N].ny = h_d_and_n.n.y;
-                        vertices[index + N].nz = h_d_and_n.n.z;
-                    }
-                    if (m_prime == 0) {
-                        vertices[index + Nplus1 * N].y = h_d_and_n.h.a;
-
-                        vertices[index + Nplus1 * N].x = vertices[index + Nplus1 * N].ox + lambda * h_d_and_n.D.x;
-                        vertices[index + Nplus1 * N].z = vertices[index + Nplus1 * N].oz + lambda * h_d_and_n.D.y;
-
-                        vertices[index + Nplus1 * N].nx = h_d_and_n.n.x;
-                        vertices[index + Nplus1 * N].ny = h_d_and_n.n.y;
-                        vertices[index + Nplus1 * N].nz = h_d_and_n.n.z;
-                    }
+//                    if (n_prime == 0 && m_prime == 0) {
+//                        int tempIndex = index + Size - 1 + Size * (Size - 1);
+//                        _vertices[tempIndex].y = height;
+//
+//                        _vertices[tempIndex].x = _originalVertices[tempIndex].x + lambda * displayment.x;
+//                        _vertices[tempIndex].z = _originalVertices[tempIndex].z + lambda * displayment.y;
+//
+//                        _normals[tempIndex] = normal;
+//                    }
+//                    if (n_prime == 0) {
+//                        vertices[index + N].y = h_d_and_n.h.a;
+//
+//                        vertices[index + N].x = vertices[index + N].ox + lambda * h_d_and_n.D.x;
+//                        vertices[index + N].z = vertices[index + N].oz + lambda * h_d_and_n.D.y;
+//
+//                        _normals[index + Size] = normal;
+//                        vertices[index + N].nx = h_d_and_n.n.x;
+//                        vertices[index + N].ny = h_d_and_n.n.y;
+//                        vertices[index + N].nz = h_d_and_n.n.z;
+//                    }
+//                    if (m_prime == 0) {
+//                        vertices[index + Nplus1 * N].y = h_d_and_n.h.a;
+//
+//                        vertices[index + Nplus1 * N].x = vertices[index + Nplus1 * N].ox + lambda * h_d_and_n.D.x;
+//                        vertices[index + Nplus1 * N].z = vertices[index + Nplus1 * N].oz + lambda * h_d_and_n.D.y;
+//
+//                        vertices[index + Nplus1 * N].nx = h_d_and_n.n.x;
+//                        vertices[index + Nplus1 * N].ny = h_d_and_n.n.y;
+//                        vertices[index + Nplus1 * N].nz = h_d_and_n.n.z;
+//                    }
                 }
             }
+            
+            //_waterMesh.SetVertices(new List<Vector3>(_vertices));
+            _waterMesh.vertices = _vertices;
+            _waterMesh.normals = _normals;
+            //_waterMesh.SetNormals();
         }
 
         void h_D_and_n(Vector2 x, float t, out float height, out Vector2 displayment, out Vector3 normal) {
@@ -141,10 +147,11 @@ namespace WaterVersionTest {
 
                     h = h + htilde_c;
 
-                    n = n + new Vector3(-kx * htilde_c.b, 0.0f, -kz * htilde_c.b);
+                    n = n + new Vector3(-kx * (float) htilde_c.Imaginary, 0.0f, -kz * (float) htilde_c.Imaginary);
 
                     if (k_length < 0.000001) continue;
-                    D = D + new Vector2(kx / k_length * htilde_c.b, kz / k_length * htilde_c.b);
+                    D = D + new Vector2(kx / k_length * (float) htilde_c.Imaginary,
+                            kz / k_length * (float) htilde_c.Imaginary);
                 }
             }
 
@@ -154,48 +161,70 @@ namespace WaterVersionTest {
             displayment = D;
             normal = n;
         }
-        //
-        complex gaussianRandomVariable() {
+
+        Complex gaussianRandomVariable() {
             float x1, x2, w;
             do {
-                x1 = 2.f * uniformRandomVariable() - 1.f;
-                x2 = 2.f * uniformRandomVariable() - 1.f;
+                x1 = 2f * Random.value - 1f;
+                x2 = 2f * Random.value - 1f;
                 w = x1 * x1 + x2 * x2;
-            } while ( w >= 1.f );
-            w = sqrt((-2.f * log(w)) / w);
-            return complex(x1 * w, x2 * w);
+            } while (w >= 1f);
+            w = Mathf.Sqrt((-2f * Mathf.Log(w)) / w);
+            return new Complex(x1 * w, x2 * w);
         }
-        //
+
+        float phillips(int n_prime, int m_prime) {
+            Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - Size) / Length, Mathf.PI * (2 * m_prime - Size) / Length);
+            float k_length = k.magnitude;
+            if (k_length < 0.000001) return 0f;
+
+            float k_length2 = k_length * k_length;
+            float k_length4 = k_length2 * k_length2;
+
+            float k_dot_w = Vector2.Dot(k.normalized, Wind.normalized);
+            float k_dot_w2 = k_dot_w * k_dot_w;
+
+            float w_length = Wind.magnitude;
+            float L = w_length * w_length / Physics.gravity.magnitude;
+            float L2 = L * L;
+
+            float damping = 0.001f;
+            float l2 = L2 * damping * damping;
+
+            return A * Mathf.Exp(-1.0f / (k_length2 * L2)) / k_length4 * k_dot_w2 * Mathf.Exp(-k_length2 * l2);
+        }
+
+        float dispersion(int n_prime, int m_prime) {
+            float w_0 = 2.0f * Mathf.PI / 200.0f;
+            float kx = Mathf.PI * (2 * n_prime - Size) / Length;
+            float kz = Mathf.PI * (2 * m_prime - Size) / Length;
+            return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w_0) * w_0;
+        }
+
         Complex hTilde_0(int n_prime, int m_prime) {
-            Complex r = new Complex(Random.);
-            return r * sqrt(phillips(n_prime, m_prime) / 2.0f);
+            Complex r = gaussianRandomVariable();
+            return r.Multiply(Mathf.Sqrt(phillips(n_prime, m_prime) / 2.0f));
         }
 
         Complex hTilde(float t, int n_prime, int m_prime) {
             int index = m_prime * Size + n_prime;
 
-            Complex htilde0 = new Complex(_vertices[index].a, _vertices[index].b);
-            Complex htilde0mkconj = new Complex(_vertices[index]._a, _vertices[index]._b);
+            Complex htilde0 = new Complex(_htilde0[index].Real, _htilde0[index].Imaginary);
+            Complex htilde0mkconj = new Complex(_htilde0MkConj[index].Real, _htilde0MkConj[index].Imaginary);
 
             float omegat = dispersion(n_prime, m_prime) * t;
 
-            float cos_ = cos(omegat);
-            float sin_ = sin(omegat);
+            float cos_ = Mathf.Cos(omegat);
+            float sin_ = Mathf.Sin(omegat);
 
-            complex
-            c0(cos_, sin_);
-            complex
-            c1(cos_, -sin_);
+            Complex c0 = new Complex(cos_, sin_);
+            Complex c1 = new Complex(cos_, -sin_);
 
-            complex res = htilde0 * c0 + htilde0mkconj * c1;
+            Complex res = htilde0 * c0 + htilde0mkconj * c1;
 
             return htilde0 * c0 + htilde0mkconj * c1;
         }
 
-        
-        
-        
-        
 
 //class cOcean {
 //  private:

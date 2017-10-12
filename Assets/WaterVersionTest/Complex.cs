@@ -164,6 +164,15 @@ namespace WaterVersionTest {
 
             return new Complex(x, y);
         }
+        
+        /// <summary>
+        /// 复数乘法
+        /// </summary>
+        /// <param name="num">待乘实数</param>
+        /// <returns>返回相乘后的复数</returns>
+        public Complex Multiply(float num) {
+            return new Complex(real*num, imaginary * num);
+        }
 
         /// <summary>
         /// 获取复数的模/幅度

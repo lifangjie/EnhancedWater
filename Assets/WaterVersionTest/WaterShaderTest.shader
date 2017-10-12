@@ -125,6 +125,7 @@ Shader "Custom/WaterShaderTest" {
 					o.worldNormal += value;
 				}
 				#else
+				o.worldNormal = half3(0,1,0);
 				#endif
 
 				// Finish transforming the vetex by applying the projection matrix

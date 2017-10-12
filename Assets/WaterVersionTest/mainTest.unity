@@ -345,6 +345,7 @@ GameObject:
   - component: {fileID: 811960636}
   - component: {fileID: 811960635}
   - component: {fileID: 811960634}
+  - component: {fileID: 811960638}
   m_Layer: 4
   m_Name: WaterTest
   m_TagString: Untagged
@@ -363,7 +364,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae921a1ea24a4234abf4457a41c7f986, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentGestner: 1
+  CurrentGestner: 0
   CurrentWaterMode: 2
   DisablePixelLights: 1
   TextureSize: 256
@@ -425,6 +426,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &811960638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 811960633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2f80dff5afa4c24930a326a0577cc72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Size: 16
+  Length: 10
+  Wind: {x: 32, y: 32}
+  A: 0.0005
 --- !u!1 &1840944308
 GameObject:
   m_ObjectHideFlags: 0
