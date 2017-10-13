@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.IO;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace WaterVersionTest {
     public class Ocean : MonoBehaviour {
@@ -11,10 +12,26 @@ namespace WaterVersionTest {
         private Vector3[] _vertices;
         private Vector3[] _normals;
         public Vector2 Wind = new Vector2(32, 32);
-        public float A = 0.0005f;
+        public float PhillipsSpectrum = 0.0005f;
 
         private Complex[] _htilde0;
         private Complex[] _htilde0MkConj;
+
+        // fft
+        private FastFourierTransform _fastFourierTransform;
+
+        private Complex[] h_tilde;
+
+        private Complex[] h_tilde_slopex;
+        private Complex[] h_tilde_slopez;
+        private Complex[] h_tilde_dx;
+
+        private Complex[] h_tilde_dz;
+
+        private float _cycle = 40f / 11f;
+
+        public int SampleCount = 32;
+        //
 
         private void Awake() {
             _waterMesh = GetComponent<MeshFilter>().sharedMesh;
@@ -26,6 +43,15 @@ namespace WaterVersionTest {
 
             _htilde0 = new Complex[Size * Size];
             _htilde0MkConj = new Complex[Size * Size];
+
+            //fft
+            _fastFourierTransform = new FastFourierTransform(Size);
+            h_tilde = new Complex[Size * Size];
+            h_tilde_slopex = new Complex[Size * Size];
+            h_tilde_slopez = new Complex[Size * Size];
+            h_tilde_dx = new Complex[Size * Size];
+            h_tilde_dz = new Complex[Size * Size];
+            //
 
 
             for (int i = 0; i < Size; i++) {
@@ -68,104 +94,169 @@ namespace WaterVersionTest {
             //mesh.normals = _newNormals;
         }
 
-        private void Update() {
-            //_mesh = _waterMesh;
+        private void SampleIntoTexture() {
+            Texture2D verticesTexture = new Texture2D(Size * Size, SampleCount, TextureFormat.RGBAHalf, false);
+            Texture2D normalsTexture = new Texture2D(Size * Size, SampleCount, TextureFormat.RGBAHalf, false);
+            for (int frame = 0; frame < SampleCount; frame++) {
+                EvaluateWavesFft(_cycle / SampleCount * frame);
+                for (int i = 0; i < Size * Size; i++) {
+                    verticesTexture.SetPixel(i, frame, new Color(_vertices[i].x, _vertices[i].y, _vertices[i].z));
+                    normalsTexture.SetPixel(i, frame, new Color(_normals[i].x, _normals[i].y, _normals[i].z));
+                }
+            }
+            byte[] verticesPng = verticesTexture.EncodeToPNG();
+            _fileStream.Write(verticesPng, 0, verticesPng.Length);
+        }
+
+        private FileStream _fileStream;
+//        private StreamWriter _streamWriter;
+//
+        private void Start() {
+            _fileStream = File.Create(Application.dataPath + "/output.txt");
+            SampleIntoTexture();
+//            _streamWriter = new StreamWriter(_fileStream);
+//            _streamWriter.WriteLine(DateTime.Now.ToLongTimeString());
+        }
+//
+//        private void Update() {
+//            //EvaluateWaves();
+//            EvaluateWavesFft();
+//            _waterMesh.vertices = _vertices;
+//            _waterMesh.normals = _normals;
+//        }
+//
+        private void OnApplicationQuit() {
+//            _streamWriter.WriteLine(DateTime.Now.ToLongTimeString());
+//            _streamWriter.Close();
+            _fileStream.Close();
+        }
+
+//        private void EvaluateWaves() {
+//            float lambda = -1.0f;
+//            for (int i = 0; i < Size; i++) {
+//                for (int j = 0; j < Size; j++) {
+//                    var index = i * Size + j;
+//
+//                    var pos = new Vector2(_vertices[index].x, _vertices[index].z);
+//
+//                    float height;
+//                    Vector2 displayment;
+//                    Vector3 normal;
+//                    CalculateVertice(pos, Time.realtimeSinceStartup, out height, out displayment, out normal);
+//
+//                    Vector3 vertices = new Vector3() {
+//                        x = _originalVertices[index].x + lambda * displayment.x,
+//                        y = height,
+//                        z = _originalVertices[index].z + lambda * displayment.y
+//                    };
+//                    _vertices[index] = vertices;
+//
+//                    _normals[index] = normal;
+//                }
+//            }
+//        }
+
+        private void EvaluateWavesFft(float time) {
             float lambda = -1.0f;
+            int index;
+
             for (int i = 0; i < Size; i++) {
+                var kz = Mathf.PI * (2.0f * i - Size) / Length;
                 for (int j = 0; j < Size; j++) {
-                    var index = i * Size + j;
+                    var kx = Mathf.PI * (2 * j - Size) / Length;
+                    var len = Mathf.Sqrt(kx * kx + kz * kz);
+                    index = i * Size + j;
 
-                    var x = new Vector2(_vertices[index].x, _vertices[index].z);
-
-                    float height;
-                    Vector2 displayment;
-                    Vector3 normal;
-                    h_D_and_n(x, Time.realtimeSinceStartup, out height, out displayment, out normal);
-
-
-                    Vector3 vertices = new Vector3() {
-                        x = _originalVertices[index].x + lambda * displayment.x,
-                        y = height,
-                        z = _originalVertices[index].z + lambda * displayment.y
-                    };
-                    _vertices[index] = vertices;
-
-                    _normals[index] = normal;
-
-//                    if (n_prime == 0 && m_prime == 0) {
-//                        int tempIndex = index + Size - 1 + Size * (Size - 1);
-//                        _vertices[tempIndex].y = height;
-//
-//                        _vertices[tempIndex].x = _originalVertices[tempIndex].x + lambda * displayment.x;
-//                        _vertices[tempIndex].z = _originalVertices[tempIndex].z + lambda * displayment.y;
-//
-//                        _normals[tempIndex] = normal;
-//                    }
-//                    if (n_prime == 0) {
-//                        vertices[index + N].y = h_d_and_n.h.a;
-//
-//                        vertices[index + N].x = vertices[index + N].ox + lambda * h_d_and_n.D.x;
-//                        vertices[index + N].z = vertices[index + N].oz + lambda * h_d_and_n.D.y;
-//
-//                        _normals[index + Size] = normal;
-//                        vertices[index + N].nx = h_d_and_n.n.x;
-//                        vertices[index + N].ny = h_d_and_n.n.y;
-//                        vertices[index + N].nz = h_d_and_n.n.z;
-//                    }
-//                    if (m_prime == 0) {
-//                        vertices[index + Nplus1 * N].y = h_d_and_n.h.a;
-//
-//                        vertices[index + Nplus1 * N].x = vertices[index + Nplus1 * N].ox + lambda * h_d_and_n.D.x;
-//                        vertices[index + Nplus1 * N].z = vertices[index + Nplus1 * N].oz + lambda * h_d_and_n.D.y;
-//
-//                        vertices[index + Nplus1 * N].nx = h_d_and_n.n.x;
-//                        vertices[index + Nplus1 * N].ny = h_d_and_n.n.y;
-//                        vertices[index + Nplus1 * N].nz = h_d_and_n.n.z;
-//                    }
+                    h_tilde[index] = HTilde(time, i, j);
+                    h_tilde_slopex[index] = h_tilde[index] * new Complex(0, kx);
+                    h_tilde_slopez[index] = h_tilde[index] * new Complex(0, kz);
+                    if (len < 0.000001f) {
+                        h_tilde_dx[index] = new Complex(0.0f, 0.0f);
+                        h_tilde_dz[index] = new Complex(0.0f, 0.0f);
+                    } else {
+                        h_tilde_dx[index] = h_tilde[index] * new Complex(0, -kx / len);
+                        h_tilde_dz[index] = h_tilde[index] * new Complex(0, -kz / len);
+                    }
                 }
             }
 
-            //_waterMesh.SetVertices(new List<Vector3>(_vertices));
-            _waterMesh.vertices = _vertices;
-            _waterMesh.normals = _normals;
-            //_waterMesh.SetVertices(_vertices);
-            //_waterMesh.SetNormals(_normals);
-            //_waterMesh.SetNormals();
-        }
-
-        void h_D_and_n(Vector2 x, float t, out float height, out Vector2 displayment, out Vector3 normal) {
-            Complex h = new Complex(0.0f, 0.0f);
-            displayment = Vector2.zero;
-            normal = Vector3.zero;
-
             for (int i = 0; i < Size; i++) {
-                var kz = 2.0f * Mathf.PI * (i - Size / 2.0f) / Length;
-                for (int j = 0; j < Size; j++) {
-                    var kx = 2.0f * Mathf.PI * (j - Size / 2.0f) / Length;
-                    var k = new Vector2(kx, kz);
-
-                    var kLength = k.magnitude;
-                    var kDotX = Vector2.Dot(k, x);
-
-                    var c = new Complex(Mathf.Cos(kDotX), Mathf.Sin(kDotX));
-                    var htildeC = HTilde(t, j, i) * c;
-
-                    h = h + htildeC;
-
-                    normal = normal + new Vector3(-kx * htildeC.Imaginary, 0.0f, -kz * htildeC.Imaginary);
-
-                    if (kLength < 0.000001) continue;
-                    displayment = displayment + new Vector2(kx / kLength * htildeC.Imaginary,
-                                      kz / kLength * htildeC.Imaginary);
-                }
+                _fastFourierTransform.Fft(h_tilde, h_tilde, 1, i * Size);
+                _fastFourierTransform.Fft(h_tilde_slopex, h_tilde_slopex, 1, i * Size);
+                _fastFourierTransform.Fft(h_tilde_slopez, h_tilde_slopez, 1, i * Size);
+                _fastFourierTransform.Fft(h_tilde_dx, h_tilde_dx, 1, i * Size);
+                _fastFourierTransform.Fft(h_tilde_dz, h_tilde_dz, 1, i * Size);
+            }
+            for (int i = 0; i < Size; i++) {
+                _fastFourierTransform.Fft(h_tilde, h_tilde, Size, i);
+                _fastFourierTransform.Fft(h_tilde_slopex, h_tilde_slopex, Size, i);
+                _fastFourierTransform.Fft(h_tilde_slopez, h_tilde_slopez, Size, i);
+                _fastFourierTransform.Fft(h_tilde_dx, h_tilde_dx, Size, i);
+                _fastFourierTransform.Fft(h_tilde_dz, h_tilde_dz, Size, i);
             }
 
-            normal = (Vector3.up - normal).normalized;
+            int[] signs = {1, -1};
+            for (int i = 0; i < Size; i++) {
+                for (int j = 0; j < Size; j++) {
+                    index = i * Size + j; // index into h_tilde..
 
-            height = h.Real;
-            //displayment = D;
-            //normal = n;
+                    var sign = signs[(j + i) & 1];
+
+                    h_tilde[index] = h_tilde[index].Multiply(sign);
+
+                    // height
+                    _vertices[index].y = h_tilde[index].Real;
+
+                    // displacement
+                    h_tilde_dx[index] = h_tilde_dx[index].Multiply(sign);
+                    h_tilde_dz[index] = h_tilde_dz[index].Multiply(sign);
+                    _vertices[index].x = _originalVertices[index].x + h_tilde_dx[index].Real * lambda;
+                    _vertices[index].z = _originalVertices[index].z + h_tilde_dz[index].Real * lambda;
+
+                    // normal
+                    h_tilde_slopex[index] = h_tilde_slopex[index].Multiply(sign);
+                    h_tilde_slopez[index] = h_tilde_slopez[index].Multiply(sign);
+                    _normals[index] = new Vector3(-h_tilde_slopex[index].Real, 1f, -h_tilde_slopez[index].Real)
+                        .normalized;
+                }
+            }
         }
+
+
+//        private void CalculateVertice(Vector2 pos, float t, out float height, out Vector2 displayment,
+//            out Vector3 normal) {
+//            Complex h = new Complex(0.0f, 0.0f);
+//            displayment = Vector2.zero;
+//            normal = Vector3.zero;
+//
+//            for (int i = 0; i < Size; i++) {
+//                var kz = 2.0f * Mathf.PI * (i - Size / 2.0f) / Length;
+//                for (int j = 0; j < Size; j++) {
+//                    var kx = 2.0f * Mathf.PI * (j - Size / 2.0f) / Length;
+//                    var k = new Vector2(kx, kz);
+//
+//                    var kLength = k.magnitude;
+//                    var kDotX = Vector2.Dot(k, pos);
+//
+//                    var c = new Complex(Mathf.Cos(kDotX), Mathf.Sin(kDotX));
+//                    var htildeC = HTilde(t, j, i) * c;
+//
+//                    h = h + htildeC;
+//
+//                    normal = normal + new Vector3(-kx * htildeC.Imaginary, 0.0f, -kz * htildeC.Imaginary);
+//
+//                    if (kLength < 0.000001) continue;
+//                    displayment = displayment + new Vector2(kx / kLength * htildeC.Imaginary,
+//                                      kz / kLength * htildeC.Imaginary);
+//                }
+//            }
+//
+//            normal = (Vector3.up - normal).normalized;
+//
+//            height = h.Real;
+//            //displayment = D;
+//            //normal = n;
+//        }
 
         Complex GaussianRandomVariable() {
             float x1, x2, w;
@@ -196,7 +287,8 @@ namespace WaterVersionTest {
             float damping = 0.001f;
             float l2 = L2 * damping * damping;
 
-            return A * Mathf.Exp(-1.0f / (kLength2 * L2)) / kLength4 * kDotW2 * Mathf.Exp(-kLength2 * l2);
+            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * L2)) / kLength4 * kDotW2 *
+                   Mathf.Exp(-kLength2 * l2);
         }
 
         float Dispersion(int nPrime, int mPrime) {
@@ -211,13 +303,13 @@ namespace WaterVersionTest {
             return r.Multiply(Mathf.Sqrt(Phillips(nPrime, mPrime) / 2.0f));
         }
 
-        Complex HTilde(float t, int nPrime, int mPrime) {
-            int index = mPrime * Size + nPrime;
+        Complex HTilde(float time, int i, int j) {
+            int index = j * Size + i;
 
             Complex htilde0 = new Complex(_htilde0[index].Real, _htilde0[index].Imaginary);
             Complex htilde0Mkconj = new Complex(_htilde0MkConj[index].Real, _htilde0MkConj[index].Imaginary);
 
-            float omegat = Dispersion(nPrime, mPrime) * t;
+            float omegat = Dispersion(i, j) * time;
 
             float cos = Mathf.Cos(omegat);
             float sin = Mathf.Sin(omegat);
@@ -225,7 +317,7 @@ namespace WaterVersionTest {
             Complex c0 = new Complex(cos, sin);
             Complex c1 = new Complex(cos, -sin);
 
-            Complex res = htilde0 * c0 + htilde0Mkconj * c1;
+            //Complex res = htilde0 * c0 + htilde0Mkconj * c1;
 
             return htilde0 * c0 + htilde0Mkconj * c1;
         }

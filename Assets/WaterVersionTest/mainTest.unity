@@ -437,10 +437,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2f80dff5afa4c24930a326a0577cc72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 16
+  Size: 64
   Length: 20
-  Wind: {x: 32, y: 32}
-  A: 0.0005
+  Wind: {x: 2, y: 2}
+  PhillipsSpectrum: 0.0005
+  SampleCount: 32
 --- !u!1 &1840944308
 GameObject:
   m_ObjectHideFlags: 0

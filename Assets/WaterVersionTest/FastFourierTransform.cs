@@ -22,14 +22,14 @@ namespace WaterVersionTest {
         void fft(complex* input, complex* output, int stride, int offset);
         */
 
-        public FastFourierTransform(uint N) {
-            this.N = N;
+        public FastFourierTransform(int N) {
+            this.N = (uint)N;
             reversed = null;
             pi2 = Mathf.PI * 2;
             log_2_N = (uint) (Mathf.Log(N) / Mathf.Log(2));
             reversed = new uint[N];
             for (int i = 0; i < N; i++) {
-                reversed[i] = reverse((uint) i);
+                reversed[i] = Reverse((uint) i);
             }
 
             uint pow2 = 1;
@@ -49,7 +49,7 @@ namespace WaterVersionTest {
             which = 0;
         }
 
-        uint reverse(uint i) {
+        private uint Reverse(uint i) {
             uint res = 0;
             for (int j = 0; j < log_2_N; j++) {
                 res = (res << 1) + (i & 1);
@@ -63,7 +63,7 @@ namespace WaterVersionTest {
             return new Complex(Mathf.Cos(pi2 * x / N), Mathf.Sin(pi2 * x / N));
         }
 
-        void fft(Complex[] input, Complex[] output, int stride, int offset) {
+        public void Fft(Complex[] input, Complex[] output, int stride, int offset) {
             for (int i = 0; i < N; i++) {
                 c[which][i] = input[reversed[i] * stride + offset];
             }
