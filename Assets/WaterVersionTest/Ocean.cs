@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace WaterVersionTest {
+    //[ExecuteInEditMode]
     public class Ocean : MonoBehaviour {
         private Mesh _waterMesh;
         public int Size = 64;
@@ -11,6 +14,7 @@ namespace WaterVersionTest {
         private Vector3[] _originalVertices;
         private Vector3[] _vertices;
         private Vector3[] _normals;
+        private Vector2[] _uvs;
         public Vector2 Wind = new Vector2(32, 32);
         public float PhillipsSpectrum = 0.0005f;
 
@@ -20,38 +24,43 @@ namespace WaterVersionTest {
         // fft
         private FastFourierTransform _fastFourierTransform;
 
-        private Complex[] h_tilde;
+        private Complex[] _hTilde;
 
-        private Complex[] h_tilde_slopex;
-        private Complex[] h_tilde_slopez;
-        private Complex[] h_tilde_dx;
+        private Complex[] _hTildeSlopex;
+        private Complex[] _hTildeSlopez;
+        private Complex[] _hTildeDx;
 
-        private Complex[] h_tilde_dz;
+        private Complex[] _hTildeDz;
 
-        private float _cycle = 40f / 11f;
+        public float Cycle = 1f;
+        public int LayerCount = 8;
+        private int _width, _height;
 
         public int SampleCount = 32;
-        //
 
-        private void Awake() {
+        private void Start() {
+            _width = Size * Size / LayerCount;
+            _height = SampleCount * LayerCount;
+            Texture2D verticesTex = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
+            verticesTex.LoadRawTextureData(Resources.Load<TextAsset>("vertices").bytes);
+            verticesTex.Apply();
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", verticesTex);
+        }
+
+        public void UpdateMesh() {
+            _width = Size * Size / LayerCount;
+            _height = SampleCount * LayerCount;
             _waterMesh = GetComponent<MeshFilter>().sharedMesh;
+            _waterMesh.name = "Ocean Mesh";
             int triangleIndex = 0;
             _originalVertices = new Vector3[Size * Size];
             int[] triangles = new int[(Size - 1) * (Size - 1) * 6];
             _vertices = new Vector3[Size * Size];
             _normals = new Vector3[Size * Size];
+            _uvs = new Vector2[Size * Size];
 
             _htilde0 = new Complex[Size * Size];
             _htilde0MkConj = new Complex[Size * Size];
-
-            //fft
-            _fastFourierTransform = new FastFourierTransform(Size);
-            h_tilde = new Complex[Size * Size];
-            h_tilde_slopex = new Complex[Size * Size];
-            h_tilde_slopez = new Complex[Size * Size];
-            h_tilde_dx = new Complex[Size * Size];
-            h_tilde_dz = new Complex[Size * Size];
-            //
 
 
             for (int i = 0; i < Size; i++) {
@@ -82,79 +91,53 @@ namespace WaterVersionTest {
                     // set uv
                     //float uvStepX = 1f / (Size - 1);
                     //float uvStepY = 1f / (Size - 1);
-                    //_newUv[index].x = i*uvStepX;
-                    //_newUv[index].y = j*uvStepY;
+                    _uvs[index].x = (index % _width * 1f + 0.5f) / _width;
+                    _uvs[index].y = (Mathf.Floor(index * 1f / _width) * SampleCount + 0.5f) / _height;
                 }
             }
-            //_waterMesh.vertices = _vertices;
+            _waterMesh.Clear();
             _waterMesh.vertices = _vertices;
-            _waterMesh.triangles = triangles;
+            _waterMesh.uv = _uvs;
             _waterMesh.normals = _normals;
-            //mesh.uv = _newUv;
-            //mesh.normals = _newNormals;
+            _waterMesh.triangles = triangles;
         }
 
-        private void SampleIntoTexture() {
-            Texture2D verticesTexture = new Texture2D(Size * Size, SampleCount, TextureFormat.RGBAHalf, false);
-            Texture2D normalsTexture = new Texture2D(Size * Size, SampleCount, TextureFormat.RGBAHalf, false);
+        public bool Baking;
+        public IEnumerator BakeIntoTexture() {
+            Baking = true;
+            yield return null;
+            _fastFourierTransform = new FastFourierTransform(Size);
+            _hTilde = new Complex[Size * Size];
+            _hTildeSlopex = new Complex[Size * Size];
+            _hTildeSlopez = new Complex[Size * Size];
+            _hTildeDx = new Complex[Size * Size];
+            _hTildeDz = new Complex[Size * Size];
+            Texture2D verticesTexture = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
+            Texture2D normalsTexture = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
             for (int frame = 0; frame < SampleCount; frame++) {
-                EvaluateWavesFft(_cycle / SampleCount * frame);
+                EvaluateWavesFft(Cycle / SampleCount * frame);
                 for (int i = 0; i < Size * Size; i++) {
-                    verticesTexture.SetPixel(i, frame, new Color(_vertices[i].x, _vertices[i].y, _vertices[i].z));
-                    normalsTexture.SetPixel(i, frame, new Color(_normals[i].x, _normals[i].y, _normals[i].z));
+                    verticesTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
+                        new Color(_vertices[i].x, _vertices[i].y, _vertices[i].z));
+                    normalsTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
+                        new Color(_normals[i].x, _normals[i].y, _normals[i].z));
                 }
+                yield return null;
             }
-            byte[] verticesPng = verticesTexture.EncodeToPNG();
-            _fileStream.Write(verticesPng, 0, verticesPng.Length);
+            verticesTexture.Apply();
+            normalsTexture.Apply();
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", verticesTexture);
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", normalsTexture);
+            byte[] verticesBytes = verticesTexture.GetRawTextureData();
+            FileStream fileStream = File.Create(Application.dataPath + "/Resources/vertices.bytes");
+            fileStream.Write(verticesBytes, 0, verticesBytes.Length);
+            fileStream.Close();
+            byte[] normalsBytes = verticesTexture.GetRawTextureData();
+            fileStream = File.Create(Application.dataPath + "/Resources/normals.bytes");
+            fileStream.Write(normalsBytes, 0, normalsBytes.Length);
+            fileStream.Close();
+            Baking = false;
         }
-
-        private FileStream _fileStream;
-//        private StreamWriter _streamWriter;
-//
-        private void Start() {
-            _fileStream = File.Create(Application.dataPath + "/output.txt");
-            SampleIntoTexture();
-//            _streamWriter = new StreamWriter(_fileStream);
-//            _streamWriter.WriteLine(DateTime.Now.ToLongTimeString());
-        }
-//
-//        private void Update() {
-//            //EvaluateWaves();
-//            EvaluateWavesFft();
-//            _waterMesh.vertices = _vertices;
-//            _waterMesh.normals = _normals;
-//        }
-//
-        private void OnApplicationQuit() {
-//            _streamWriter.WriteLine(DateTime.Now.ToLongTimeString());
-//            _streamWriter.Close();
-            _fileStream.Close();
-        }
-
-//        private void EvaluateWaves() {
-//            float lambda = -1.0f;
-//            for (int i = 0; i < Size; i++) {
-//                for (int j = 0; j < Size; j++) {
-//                    var index = i * Size + j;
-//
-//                    var pos = new Vector2(_vertices[index].x, _vertices[index].z);
-//
-//                    float height;
-//                    Vector2 displayment;
-//                    Vector3 normal;
-//                    CalculateVertice(pos, Time.realtimeSinceStartup, out height, out displayment, out normal);
-//
-//                    Vector3 vertices = new Vector3() {
-//                        x = _originalVertices[index].x + lambda * displayment.x,
-//                        y = height,
-//                        z = _originalVertices[index].z + lambda * displayment.y
-//                    };
-//                    _vertices[index] = vertices;
-//
-//                    _normals[index] = normal;
-//                }
-//            }
-//        }
 
         private void EvaluateWavesFft(float time) {
             float lambda = -1.0f;
@@ -167,32 +150,32 @@ namespace WaterVersionTest {
                     var len = Mathf.Sqrt(kx * kx + kz * kz);
                     index = i * Size + j;
 
-                    h_tilde[index] = HTilde(time, i, j);
-                    h_tilde_slopex[index] = h_tilde[index] * new Complex(0, kx);
-                    h_tilde_slopez[index] = h_tilde[index] * new Complex(0, kz);
+                    _hTilde[index] = HTilde(time, i, j);
+                    _hTildeSlopex[index] = _hTilde[index] * new Complex(0, kx);
+                    _hTildeSlopez[index] = _hTilde[index] * new Complex(0, kz);
                     if (len < 0.000001f) {
-                        h_tilde_dx[index] = new Complex(0.0f, 0.0f);
-                        h_tilde_dz[index] = new Complex(0.0f, 0.0f);
+                        _hTildeDx[index] = new Complex(0.0f, 0.0f);
+                        _hTildeDz[index] = new Complex(0.0f, 0.0f);
                     } else {
-                        h_tilde_dx[index] = h_tilde[index] * new Complex(0, -kx / len);
-                        h_tilde_dz[index] = h_tilde[index] * new Complex(0, -kz / len);
+                        _hTildeDx[index] = _hTilde[index] * new Complex(0, -kx / len);
+                        _hTildeDz[index] = _hTilde[index] * new Complex(0, -kz / len);
                     }
                 }
             }
 
             for (int i = 0; i < Size; i++) {
-                _fastFourierTransform.Fft(h_tilde, h_tilde, 1, i * Size);
-                _fastFourierTransform.Fft(h_tilde_slopex, h_tilde_slopex, 1, i * Size);
-                _fastFourierTransform.Fft(h_tilde_slopez, h_tilde_slopez, 1, i * Size);
-                _fastFourierTransform.Fft(h_tilde_dx, h_tilde_dx, 1, i * Size);
-                _fastFourierTransform.Fft(h_tilde_dz, h_tilde_dz, 1, i * Size);
+                _fastFourierTransform.Fft(_hTilde, _hTilde, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeSlopex, _hTildeSlopex, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeSlopez, _hTildeSlopez, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeDx, _hTildeDx, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeDz, _hTildeDz, 1, i * Size);
             }
             for (int i = 0; i < Size; i++) {
-                _fastFourierTransform.Fft(h_tilde, h_tilde, Size, i);
-                _fastFourierTransform.Fft(h_tilde_slopex, h_tilde_slopex, Size, i);
-                _fastFourierTransform.Fft(h_tilde_slopez, h_tilde_slopez, Size, i);
-                _fastFourierTransform.Fft(h_tilde_dx, h_tilde_dx, Size, i);
-                _fastFourierTransform.Fft(h_tilde_dz, h_tilde_dz, Size, i);
+                _fastFourierTransform.Fft(_hTilde, _hTilde, Size, i);
+                _fastFourierTransform.Fft(_hTildeSlopex, _hTildeSlopex, Size, i);
+                _fastFourierTransform.Fft(_hTildeSlopez, _hTildeSlopez, Size, i);
+                _fastFourierTransform.Fft(_hTildeDx, _hTildeDx, Size, i);
+                _fastFourierTransform.Fft(_hTildeDz, _hTildeDz, Size, i);
             }
 
             int[] signs = {1, -1};
@@ -202,61 +185,25 @@ namespace WaterVersionTest {
 
                     var sign = signs[(j + i) & 1];
 
-                    h_tilde[index] = h_tilde[index].Multiply(sign);
+                    _hTilde[index] = _hTilde[index].Multiply(sign);
 
                     // height
-                    _vertices[index].y = h_tilde[index].Real;
+                    _vertices[index].y = _hTilde[index].Real;
 
                     // displacement
-                    h_tilde_dx[index] = h_tilde_dx[index].Multiply(sign);
-                    h_tilde_dz[index] = h_tilde_dz[index].Multiply(sign);
-                    _vertices[index].x = _originalVertices[index].x + h_tilde_dx[index].Real * lambda;
-                    _vertices[index].z = _originalVertices[index].z + h_tilde_dz[index].Real * lambda;
+                    _hTildeDx[index] = _hTildeDx[index].Multiply(sign);
+                    _hTildeDz[index] = _hTildeDz[index].Multiply(sign);
+                    _vertices[index].x = _originalVertices[index].x + _hTildeDx[index].Real * lambda;
+                    _vertices[index].z = _originalVertices[index].z + _hTildeDz[index].Real * lambda;
 
                     // normal
-                    h_tilde_slopex[index] = h_tilde_slopex[index].Multiply(sign);
-                    h_tilde_slopez[index] = h_tilde_slopez[index].Multiply(sign);
-                    _normals[index] = new Vector3(-h_tilde_slopex[index].Real, 1f, -h_tilde_slopez[index].Real)
+                    _hTildeSlopex[index] = _hTildeSlopex[index].Multiply(sign);
+                    _hTildeSlopez[index] = _hTildeSlopez[index].Multiply(sign);
+                    _normals[index] = new Vector3(-_hTildeSlopex[index].Real, 1f, -_hTildeSlopez[index].Real)
                         .normalized;
                 }
             }
         }
-
-
-//        private void CalculateVertice(Vector2 pos, float t, out float height, out Vector2 displayment,
-//            out Vector3 normal) {
-//            Complex h = new Complex(0.0f, 0.0f);
-//            displayment = Vector2.zero;
-//            normal = Vector3.zero;
-//
-//            for (int i = 0; i < Size; i++) {
-//                var kz = 2.0f * Mathf.PI * (i - Size / 2.0f) / Length;
-//                for (int j = 0; j < Size; j++) {
-//                    var kx = 2.0f * Mathf.PI * (j - Size / 2.0f) / Length;
-//                    var k = new Vector2(kx, kz);
-//
-//                    var kLength = k.magnitude;
-//                    var kDotX = Vector2.Dot(k, pos);
-//
-//                    var c = new Complex(Mathf.Cos(kDotX), Mathf.Sin(kDotX));
-//                    var htildeC = HTilde(t, j, i) * c;
-//
-//                    h = h + htildeC;
-//
-//                    normal = normal + new Vector3(-kx * htildeC.Imaginary, 0.0f, -kz * htildeC.Imaginary);
-//
-//                    if (kLength < 0.000001) continue;
-//                    displayment = displayment + new Vector2(kx / kLength * htildeC.Imaginary,
-//                                      kz / kLength * htildeC.Imaginary);
-//                }
-//            }
-//
-//            normal = (Vector3.up - normal).normalized;
-//
-//            height = h.Real;
-//            //displayment = D;
-//            //normal = n;
-//        }
 
         Complex GaussianRandomVariable() {
             float x1, x2, w;
@@ -282,13 +229,13 @@ namespace WaterVersionTest {
 
             float wLength = Wind.magnitude;
             float l = wLength * wLength / Physics.gravity.magnitude;
-            float L2 = l * l;
+            float l2 = l * l;
 
             float damping = 0.001f;
-            float l2 = L2 * damping * damping;
+            float l2Damping2 = l2 * damping * damping;
 
-            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * L2)) / kLength4 * kDotW2 *
-                   Mathf.Exp(-kLength2 * l2);
+            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * l2)) / kLength4 * kDotW2 *
+                   Mathf.Exp(-kLength2 * l2Damping2);
         }
 
         float Dispersion(int nPrime, int mPrime) {
@@ -317,402 +264,7 @@ namespace WaterVersionTest {
             Complex c0 = new Complex(cos, sin);
             Complex c1 = new Complex(cos, -sin);
 
-            //Complex res = htilde0 * c0 + htilde0Mkconj * c1;
-
             return htilde0 * c0 + htilde0Mkconj * c1;
         }
-
-
-//class cOcean {
-//  private:
-//	bool geometry;				// flag to render geometry or surface
-//
-//	float g;				// gravity constant
-//	int N, Nplus1;				// dimension -- N should be a power of 2
-//	float A;				// phillips spectrum parameter -- affects heights of waves
-//	vector2 w;				// wind parameter
-//	float length;				// length parameter
-//	complex *h_tilde,			// for fast fourier transform
-//		*h_tilde_slopex, *h_tilde_slopez,
-//		*h_tilde_dx, *h_tilde_dz;
-//	cFFT *fft;				// fast fourier transform
-//
-//	vertex_ocean *vertices;			// vertices for vertex buffer object
-//	unsigned int *indices;			// indicies for vertex buffer object
-//	unsigned int indices_count;		// number of indices to render
-//	GLuint vbo_vertices, vbo_indices;	// vertex buffer objects
-//
-//	GLuint glProgram, glShaderV, glShaderF;	// shaders
-//	GLint vertex, normal, texture, light_position, projection, view, model;	// attributes and uniforms
-//
-//  protected:
-//  public:
-//	cOcean(const int N, const float A, const vector2 w, const float length, bool geometry);
-//	~cOcean();
-//	void release();
-//
-//	float dispersion(int n_prime, int m_prime);		// deep water
-//	float phillips(int n_prime, int m_prime);		// phillips spectrum
-//	complex hTilde_0(int n_prime, int m_prime);
-//	complex hTilde(float t, int n_prime, int m_prime);
-//	complex_vector_normal h_D_and_n(vector2 x, float t);
-//	void evaluateWaves(float t);
-//	void evaluateWavesFFT(float t);
-//	void render(float t, glm::vec3 light_pos, glm::mat4 Projection, glm::mat4 View, glm::mat4 Model, bool use_fft);
-//};
-//
-//cOcean::cOcean(const int N, const float A, const vector2 w, const float length, const bool geometry) :
-//	g(9.81), geometry(geometry), N(N), Nplus1(N+1), A(A), w(w), length(length),
-//	vertices(0), indices(0), h_tilde(0), h_tilde_slopex(0), h_tilde_slopez(0), h_tilde_dx(0), h_tilde_dz(0), fft(0)
-//{
-//	h_tilde        = new complex[N*N];
-//	h_tilde_slopex = new complex[N*N];
-//	h_tilde_slopez = new complex[N*N];
-//	h_tilde_dx     = new complex[N*N];
-//	h_tilde_dz     = new complex[N*N];
-//	fft            = new cFFT(N);
-//	vertices       = new vertex_ocean[Nplus1*Nplus1];
-//	indices        = new unsigned int[Nplus1*Nplus1*10];
-//
-//	int index;
-//
-//	complex htilde0, htilde0mk_conj;
-//	for (int m_prime = 0; m_prime < Nplus1; m_prime++) {
-//		for (int n_prime = 0; n_prime < Nplus1; n_prime++) {
-//			index = m_prime * Nplus1 + n_prime;
-//
-//			htilde0        = hTilde_0( n_prime,  m_prime);
-//			htilde0mk_conj = hTilde_0(-n_prime, -m_prime).conj();
-//
-//			vertices[index].a  = htilde0.a;
-//			vertices[index].b  = htilde0.b;
-//			vertices[index]._a = htilde0mk_conj.a;
-//			vertices[index]._b = htilde0mk_conj.b;
-//
-//			vertices[index].ox = vertices[index].x =  (n_prime - N / 2.0f) * length / N;
-//			vertices[index].oy = vertices[index].y =  0.0f;
-//			vertices[index].oz = vertices[index].z =  (m_prime - N / 2.0f) * length / N;
-//
-//			vertices[index].nx = 0.0f;
-//			vertices[index].ny = 1.0f;
-//			vertices[index].nz = 0.0f;
-//		}
-//	}
-//
-//	indices_count = 0;
-//	for (int m_prime = 0; m_prime < N; m_prime++) {
-//		for (int n_prime = 0; n_prime < N; n_prime++) {
-//			index = m_prime * Nplus1 + n_prime;
-//
-//			if (geometry) {
-//				indices[indices_count++] = index;				// lines
-//				indices[indices_count++] = index + 1;
-//				indices[indices_count++] = index;
-//				indices[indices_count++] = index + Nplus1;
-//				indices[indices_count++] = index;
-//				indices[indices_count++] = index + Nplus1 + 1;
-//				if (n_prime == N - 1) {
-//					indices[indices_count++] = index + 1;
-//					indices[indices_count++] = index + Nplus1 + 1;
-//				}
-//				if (m_prime == N - 1) {
-//					indices[indices_count++] = index + Nplus1;
-//					indices[indices_count++] = index + Nplus1 + 1;
-//				}
-//			} else {
-//				indices[indices_count++] = index;				// two triangles
-//				indices[indices_count++] = index + Nplus1;
-//				indices[indices_count++] = index + Nplus1 + 1;
-//				indices[indices_count++] = index;
-//				indices[indices_count++] = index + Nplus1 + 1;
-//				indices[indices_count++] = index + 1;
-//			}
-//		}
-//	}
-//
-//	createProgram(glProgram, glShaderV, glShaderF, "src/oceanv.sh", "src/oceanf.sh");
-//	vertex         = glGetAttribLocation(glProgram, "vertex");
-//	normal         = glGetAttribLocation(glProgram, "normal");
-//	texture        = glGetAttribLocation(glProgram, "texture");
-//	light_position = glGetUniformLocation(glProgram, "light_position");
-//	projection     = glGetUniformLocation(glProgram, "Projection");
-//	view           = glGetUniformLocation(glProgram, "View");
-//	model          = glGetUniformLocation(glProgram, "Model");
-//
-//	glGenBuffers(1, &vbo_vertices);
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_ocean)*(Nplus1)*(Nplus1), vertices, GL_DYNAMIC_DRAW);
-//
-//	glGenBuffers(1, &vbo_indices);
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_indices);
-//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count*sizeof(unsigned int), indices, GL_STATIC_DRAW);
-//}
-//
-//cOcean::~cOcean() {
-//	if (h_tilde)		delete [] h_tilde;
-//	if (h_tilde_slopex)	delete [] h_tilde_slopex;
-//	if (h_tilde_slopez)	delete [] h_tilde_slopez;
-//	if (h_tilde_dx)		delete [] h_tilde_dx;
-//	if (h_tilde_dz)		delete [] h_tilde_dz;
-//	if (fft)		delete fft;
-//	if (vertices)		delete [] vertices;
-//	if (indices)		delete [] indices;
-//}
-//
-//void cOcean::release() {
-//	glDeleteBuffers(1, &vbo_indices);
-//	glDeleteBuffers(1, &vbo_vertices);
-//	releaseProgram(glProgram, glShaderV, glShaderF);
-//}
-//
-//float cOcean::dispersion(int n_prime, int m_prime) {
-//	float w_0 = 2.0f * Mathf.PI / 200.0f;
-//	float kx = Mathf.PI * (2 * n_prime - N) / length;
-//	float kz = Mathf.PI * (2 * m_prime - N) / length;
-//	return floor(sqrt(g * sqrt(kx * kx + kz * kz)) / w_0) * w_0;
-//}
-//
-//float cOcean::phillips(int n_prime, int m_prime) {
-//	vector2 k(Mathf.PI * (2 * n_prime - N) / length,
-//		  Mathf.PI * (2 * m_prime - N) / length);
-//	float k_length  = k.length();
-//	if (k_length < 0.000001) return 0.0;
-//
-//	float k_length2 = k_length  * k_length;
-//	float k_length4 = k_length2 * k_length2;
-//
-//	float k_dot_w   = k.unit() * w.unit();
-//	float k_dot_w2  = k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w;
-//
-//	float w_length  = w.length();
-//	float L         = w_length * w_length / g;
-//	float L2        = L * L;
-//	
-//	float damping   = 0.001;
-//	float l2        = L2 * damping * damping;
-//
-//	return A * exp(-1.0f / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
-//}
-//
-//complex cOcean::hTilde_0(int n_prime, int m_prime) {
-//	complex r = gaussianRandomVariable();
-//	return r * sqrt(phillips(n_prime, m_prime) / 2.0f);
-//}
-//
-//complex cOcean::hTilde(float t, int n_prime, int m_prime) {
-//	int index = m_prime * Nplus1 + n_prime;
-//
-//	complex htilde0(vertices[index].a,  vertices[index].b);
-//	complex htilde0mkconj(vertices[index]._a, vertices[index]._b);
-//
-//	float omegat = dispersion(n_prime, m_prime) * t;
-//
-//	float cos_ = cos(omegat);
-//	float sin_ = sin(omegat);
-//
-//	complex c0(cos_,  sin_);
-//	complex c1(cos_, -sin_);
-//
-//	complex res = htilde0 * c0 + htilde0mkconj * c1;
-//
-//	return htilde0 * c0 + htilde0mkconj*c1;
-//}
-//
-
-//
-//void cOcean::evaluateWaves(float t) {
-//	float lambda = -1.0;
-//	int index;
-//	vector2 x;
-//	vector2 d;
-//	complex_vector_normal h_d_and_n;
-//	for (int m_prime = 0; m_prime < N; m_prime++) {
-//		for (int n_prime = 0; n_prime < N; n_prime++) {
-//			index = m_prime * Nplus1 + n_prime;
-//
-//			x = vector2(vertices[index].x, vertices[index].z);
-//
-//			h_d_and_n = h_D_and_n(x, t);
-//
-//			vertices[index].y = h_d_and_n.h.a;
-//
-//			vertices[index].x = vertices[index].ox + lambda*h_d_and_n.D.x;
-//			vertices[index].z = vertices[index].oz + lambda*h_d_and_n.D.y;
-//
-//			vertices[index].nx = h_d_and_n.n.x;
-//			vertices[index].ny = h_d_and_n.n.y;
-//			vertices[index].nz = h_d_and_n.n.z;
-//
-//			if (n_prime == 0 && m_prime == 0) {
-//				vertices[index + N + Nplus1 * N].y = h_d_and_n.h.a;
-//			
-//				vertices[index + N + Nplus1 * N].x = vertices[index + N + Nplus1 * N].ox + lambda*h_d_and_n.D.x;
-//				vertices[index + N + Nplus1 * N].z = vertices[index + N + Nplus1 * N].oz + lambda*h_d_and_n.D.y;
-//
-//				vertices[index + N + Nplus1 * N].nx = h_d_and_n.n.x;
-//				vertices[index + N + Nplus1 * N].ny = h_d_and_n.n.y;
-//				vertices[index + N + Nplus1 * N].nz = h_d_and_n.n.z;
-//			}
-//			if (n_prime == 0) {
-//				vertices[index + N].y = h_d_and_n.h.a;
-//			
-//				vertices[index + N].x = vertices[index + N].ox + lambda*h_d_and_n.D.x;
-//				vertices[index + N].z = vertices[index + N].oz + lambda*h_d_and_n.D.y;
-//
-//				vertices[index + N].nx = h_d_and_n.n.x;
-//				vertices[index + N].ny = h_d_and_n.n.y;
-//				vertices[index + N].nz = h_d_and_n.n.z;
-//			}
-//			if (m_prime == 0) {
-//				vertices[index + Nplus1 * N].y = h_d_and_n.h.a;
-//			
-//				vertices[index + Nplus1 * N].x = vertices[index + Nplus1 * N].ox + lambda*h_d_and_n.D.x;
-//				vertices[index + Nplus1 * N].z = vertices[index + Nplus1 * N].oz + lambda*h_d_and_n.D.y;
-//				
-//				vertices[index + Nplus1 * N].nx = h_d_and_n.n.x;
-//				vertices[index + Nplus1 * N].ny = h_d_and_n.n.y;
-//				vertices[index + Nplus1 * N].nz = h_d_and_n.n.z;
-//			}
-//		}
-//	}
-//}
-//
-//void cOcean::evaluateWavesFFT(float t) {
-//	float kx, kz, len, lambda = -1.0f;
-//	int index, index1;
-//
-//	for (int m_prime = 0; m_prime < N; m_prime++) {
-//		kz = Mathf.PI * (2.0f * m_prime - N) / length;
-//		for (int n_prime = 0; n_prime < N; n_prime++) {
-//			kx = Mathf.PI*(2 * n_prime - N) / length;
-//			len = sqrt(kx * kx + kz * kz);
-//			index = m_prime * N + n_prime;
-//
-//			h_tilde[index] = hTilde(t, n_prime, m_prime);
-//			h_tilde_slopex[index] = h_tilde[index] * complex(0, kx);
-//			h_tilde_slopez[index] = h_tilde[index] * complex(0, kz);
-//			if (len < 0.000001f) {
-//				h_tilde_dx[index]     = complex(0.0f, 0.0f);
-//				h_tilde_dz[index]     = complex(0.0f, 0.0f);
-//			} else {
-//				h_tilde_dx[index]     = h_tilde[index] * complex(0, -kx/len);
-//				h_tilde_dz[index]     = h_tilde[index] * complex(0, -kz/len);
-//			}
-//		}
-//	}
-//
-//	for (int m_prime = 0; m_prime < N; m_prime++) {
-//		fft->fft(h_tilde, h_tilde, 1, m_prime * N);
-//		fft->fft(h_tilde_slopex, h_tilde_slopex, 1, m_prime * N);
-//		fft->fft(h_tilde_slopez, h_tilde_slopez, 1, m_prime * N);
-//		fft->fft(h_tilde_dx, h_tilde_dx, 1, m_prime * N);
-//		fft->fft(h_tilde_dz, h_tilde_dz, 1, m_prime * N);
-//	}
-//	for (int n_prime = 0; n_prime < N; n_prime++) {
-//		fft->fft(h_tilde, h_tilde, N, n_prime);
-//		fft->fft(h_tilde_slopex, h_tilde_slopex, N, n_prime);
-//		fft->fft(h_tilde_slopez, h_tilde_slopez, N, n_prime);
-//		fft->fft(h_tilde_dx, h_tilde_dx, N, n_prime);
-//		fft->fft(h_tilde_dz, h_tilde_dz, N, n_prime);
-//	}
-//
-//	int sign;
-//	float signs[] = { 1.0f, -1.0f };
-//	vector3 n;
-//	for (int m_prime = 0; m_prime < N; m_prime++) {
-//		for (int n_prime = 0; n_prime < N; n_prime++) {
-//			index  = m_prime * N + n_prime;		// index into h_tilde..
-//			index1 = m_prime * Nplus1 + n_prime;	// index into vertices
-//
-//			sign = signs[(n_prime + m_prime) & 1];
-//
-//			h_tilde[index]     = h_tilde[index] * sign;
-//
-//			// height
-//			vertices[index1].y = h_tilde[index].a;
-//
-//			// displacement
-//			h_tilde_dx[index] = h_tilde_dx[index] * sign;
-//			h_tilde_dz[index] = h_tilde_dz[index] * sign;
-//			vertices[index1].x = vertices[index1].ox + h_tilde_dx[index].a * lambda;
-//			vertices[index1].z = vertices[index1].oz + h_tilde_dz[index].a * lambda;
-//			
-//			// normal
-//			h_tilde_slopex[index] = h_tilde_slopex[index] * sign;
-//			h_tilde_slopez[index] = h_tilde_slopez[index] * sign;
-//			n = vector3(0.0f - h_tilde_slopex[index].a, 1.0f, 0.0f - h_tilde_slopez[index].a).unit();
-//			vertices[index1].nx =  n.x;
-//			vertices[index1].ny =  n.y;
-//			vertices[index1].nz =  n.z;
-//
-//			// for tiling
-//			if (n_prime == 0 && m_prime == 0) {
-//				vertices[index1 + N + Nplus1 * N].y = h_tilde[index].a;
-//
-//				vertices[index1 + N + Nplus1 * N].x = vertices[index1 + N + Nplus1 * N].ox + h_tilde_dx[index].a * lambda;
-//				vertices[index1 + N + Nplus1 * N].z = vertices[index1 + N + Nplus1 * N].oz + h_tilde_dz[index].a * lambda;
-//			
-//				vertices[index1 + N + Nplus1 * N].nx =  n.x;
-//				vertices[index1 + N + Nplus1 * N].ny =  n.y;
-//				vertices[index1 + N + Nplus1 * N].nz =  n.z;
-//			}
-//			if (n_prime == 0) {
-//				vertices[index1 + N].y = h_tilde[index].a;
-//
-//				vertices[index1 + N].x = vertices[index1 + N].ox + h_tilde_dx[index].a * lambda;
-//				vertices[index1 + N].z = vertices[index1 + N].oz + h_tilde_dz[index].a * lambda;
-//			
-//				vertices[index1 + N].nx =  n.x;
-//				vertices[index1 + N].ny =  n.y;
-//				vertices[index1 + N].nz =  n.z;
-//			}
-//			if (m_prime == 0) {
-//				vertices[index1 + Nplus1 * N].y = h_tilde[index].a;
-//
-//				vertices[index1 + Nplus1 * N].x = vertices[index1 + Nplus1 * N].ox + h_tilde_dx[index].a * lambda;
-//				vertices[index1 + Nplus1 * N].z = vertices[index1 + Nplus1 * N].oz + h_tilde_dz[index].a * lambda;
-//			
-//				vertices[index1 + Nplus1 * N].nx =  n.x;
-//				vertices[index1 + Nplus1 * N].ny =  n.y;
-//				vertices[index1 + Nplus1 * N].nz =  n.z;
-//			}
-//		}
-//	}
-//}
-//
-//void cOcean::render(float t, glm::vec3 light_pos, glm::mat4 Projection, glm::mat4 View, glm::mat4 Model, bool use_fft) {
-//	static bool eval = false;
-//	if (!use_fft && !eval) {
-//		eval = true;
-//		evaluateWaves(t);
-//	} else if (use_fft) {
-//		evaluateWavesFFT(t);
-//	}
-//
-//	glUseProgram(glProgram);
-//	glUniform3f(light_position, light_pos.x, light_pos.y, light_pos.z);
-//	glUniformMatrix4fv(projection, 1, GL_FALSE, glm::value_ptr(Projection));
-//	glUniformMatrix4fv(view,       1, GL_FALSE, glm::value_ptr(View));
-//	glUniformMatrix4fv(model,      1, GL_FALSE, glm::value_ptr(Model));
-//
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-//	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertex_ocean) * Nplus1 * Nplus1, vertices);
-//	glEnableVertexAttribArray(vertex);
-//	glVertexAttribPointer(vertex, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_ocean), 0);
-//	glEnableVertexAttribArray(normal);
-//	glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_ocean), (char *)NULL + 12);
-//	glEnableVertexAttribArray(texture);
-//	glVertexAttribPointer(texture, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_ocean), (char *)NULL + 24);
-//
-//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_indices);
-//	for (int j = 0; j < 10; j++) {
-//		for (int i = 0; i < 10; i++) {
-//			Model = glm::scale(glm::mat4(1.0f), glm::vec3(5.f,5.f,5.f));
-//			Model = glm::translate(Model, glm::vec3(length * i, 0, length * -j));
-//			glUniformMatrix4fv(model, 1, GL_FALSE, glm::value_ptr(Model));
-//			glDrawElements(geometry ? GL_LINES : GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
-//		}
-//	}
-//}
     }
 }

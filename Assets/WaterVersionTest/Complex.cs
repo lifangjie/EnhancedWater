@@ -3,6 +3,23 @@ using UnityEngine;
 
 namespace WaterVersionTest {
     public class Complex {
+        private bool Equals(Complex other) {
+            return _real.Equals(other._real) && _imaginary.Equals(other._imaginary);
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Complex) obj);
+        }
+
+        public override int GetHashCode() {
+            unchecked {
+                return (_real.GetHashCode() * 397) ^ _imaginary.GetHashCode();
+            }
+        }
+
         #region 字段
 
         //复数实部
