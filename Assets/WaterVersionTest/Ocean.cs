@@ -68,12 +68,12 @@ namespace WaterVersionTest {
                     // set vertices
                     int index = i * Size + j;
 
-                    _htilde0[index] = hTilde_0(j, i);
-                    _htilde0MkConj[index] = hTilde_0(-j, -i).Conjugate();
+                    _htilde0[index] = hTilde_0(i, j);
+                    _htilde0MkConj[index] = hTilde_0(-i, -j).Conjugate();
 
-                    _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / Size;
+                    _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / (Size - 1);
                     _originalVertices[index].y = _vertices[index].y = 0;
-                    _originalVertices[index].z = _vertices[index].z = (j - Size / 2) * Length / Size;
+                    _originalVertices[index].z = _vertices[index].z = (j - Size / 2) * Length / (Size - 1);
 
                     _normals[index] = Vector3.up;
                     // set triangles
@@ -144,9 +144,9 @@ namespace WaterVersionTest {
             int index;
 
             for (int i = 0; i < Size; i++) {
-                var kz = Mathf.PI * (2.0f * i - Size) / Length;
+                var kz = Mathf.PI * (2 * i - Size + 1) / Length;
                 for (int j = 0; j < Size; j++) {
-                    var kx = Mathf.PI * (2 * j - Size) / Length;
+                    var kx = Mathf.PI * (2 * j - Size + 1) / Length;
                     var len = Mathf.Sqrt(kx * kx + kz * kz);
                     index = i * Size + j;
 
@@ -216,8 +216,8 @@ namespace WaterVersionTest {
             return new Complex(x1 * w, x2 * w);
         }
 
-        float Phillips(int nPrime, int mPrime) {
-            Vector2 k = new Vector2(Mathf.PI * (2 * nPrime - Size) / Length, Mathf.PI * (2 * mPrime - Size) / Length);
+        float Phillips(int i, int j) {
+            Vector2 k = new Vector2(Mathf.PI * (2 * i - Size + 1) / Length, Mathf.PI * (2 * j - Size + 1) / Length);
             float kLength = k.magnitude;
             if (kLength < 0.000001) return 0f;
 
@@ -238,10 +238,10 @@ namespace WaterVersionTest {
                    Mathf.Exp(-kLength2 * l2Damping2);
         }
 
-        float Dispersion(int nPrime, int mPrime) {
+        float Dispersion(int i, int j) {
             float w0 = 2.0f * Mathf.PI / 200.0f;
-            float kx = Mathf.PI * (2 * nPrime - Size) / Length;
-            float kz = Mathf.PI * (2 * mPrime - Size) / Length;
+            float kx = Mathf.PI * (2 * i - Size + 1) / Length;
+            float kz = Mathf.PI * (2 * j - Size + 1) / Length;
             return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;
         }
 
@@ -251,12 +251,21 @@ namespace WaterVersionTest {
         }
 
         Complex HTilde(float time, int i, int j) {
-            int index = j * Size + i;
+            int index = i * Size + j;
 
             Complex htilde0 = new Complex(_htilde0[index].Real, _htilde0[index].Imaginary);
             Complex htilde0Mkconj = new Complex(_htilde0MkConj[index].Real, _htilde0MkConj[index].Imaginary);
 
             float omegat = Dispersion(i, j) * time;
+            
+            // todo
+            if (i == 0 && j == 0) {
+                
+            }
+            if (i == 63 && j == 0) {
+                
+            }
+            
 
             float cos = Mathf.Cos(omegat);
             float sin = Mathf.Sin(omegat);
