@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
-using UnityEditor;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace WaterVersionTest {
     //[ExecuteInEditMode]
@@ -45,6 +42,15 @@ namespace WaterVersionTest {
             verticesTex.LoadRawTextureData(Resources.Load<TextAsset>("vertices").bytes);
             verticesTex.Apply();
             GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", verticesTex);
+            Texture2D normalsTex = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
+            normalsTex.LoadRawTextureData(Resources.Load<TextAsset>("normals").bytes);
+            normalsTex.Apply();
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", normalsTex);
+            if (LayerCount > 1) {
+                verticesTex.filterMode = FilterMode.Point;
+                normalsTex.filterMode = FilterMode.Point;
+            }
+            Resources.UnloadUnusedAssets();
         }
 
         public void UpdateMesh() {
@@ -72,8 +78,8 @@ namespace WaterVersionTest {
                     // set vertices
                     int index = i * Size + j;
 
-                    _htilde0[index] = hTilde_0(j, i);
-                    _htilde0MkConj[index] = hTilde_0(-j, -i).Conjugate();
+                    _htilde0[index] = hTilde_0(i, j);
+                    _htilde0MkConj[index] = hTilde_0(-i, -j).Conjugate();
 
                     _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / (Size - 1);
                     _originalVertices[index].y = _vertices[index].y = 0;
@@ -82,13 +88,13 @@ namespace WaterVersionTest {
                     _normals[index] = Vector3.up;
                     // set triangles
                     if (j < Size - 1 && i < Size - 1) {
-                        triangles[triangleIndex + 0] = (j * Size) + i;
-                        triangles[triangleIndex + 1] = (j * Size) + i + 1;
-                        triangles[triangleIndex + 2] = ((j + 1) * Size) + i + 1;
+                        triangles[triangleIndex + 0] = index;
+                        triangles[triangleIndex + 1] = index + 1;
+                        triangles[triangleIndex + 2] = index + Size + 1;
 
-                        triangles[triangleIndex + 3] = (j * Size) + i;
-                        triangles[triangleIndex + 4] = ((j + 1) * Size) + i + 1;
-                        triangles[triangleIndex + 5] = ((j + 1) * Size) + i;
+                        triangles[triangleIndex + 3] = index;
+                        triangles[triangleIndex + 4] = index + Size + 1;
+                        triangles[triangleIndex + 5] = index + Size;
 
                         triangleIndex += 6;
                     }
@@ -105,9 +111,12 @@ namespace WaterVersionTest {
         }
 
         public bool Baking;
+        public int Progress;
 
         public IEnumerator BakeIntoTexture() {
             Baking = true;
+            Progress = 0;
+            print("Begin baking, Size: " + Size);
             yield return null;
             _fastFourierTransform = new FastFourierTransform(Size);
             _hTilde = new Complex[Size * Size];
@@ -125,6 +134,7 @@ namespace WaterVersionTest {
                     normalsTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
                         new Color(_normals[i].x, _normals[i].y, _normals[i].z));
                 }
+                Progress = frame;
                 yield return null;
             }
             verticesTexture.Apply();
@@ -132,17 +142,22 @@ namespace WaterVersionTest {
             GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", verticesTexture);
             GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", normalsTexture);
             byte[] verticesBytes = verticesTexture.GetRawTextureData();
-            FileStream fileStream =
-                File.Open(Application.dataPath + "/Resources/vertices.bytes", FileMode.OpenOrCreate);
+            FileStream fileStream = File.Open(Application.dataPath + "/Resources/vertices.bytes", FileMode.Create);
             fileStream.Write(verticesBytes, 0, verticesBytes.Length);
             fileStream.Flush();
             fileStream.Close();
-            byte[] normalsBytes = verticesTexture.GetRawTextureData();
-            fileStream = File.Open(Application.dataPath + "/Resources/normals.bytes", FileMode.OpenOrCreate);
+            byte[] normalsBytes = normalsTexture.GetRawTextureData();
+            fileStream = File.Open(Application.dataPath + "/Resources/normals.bytes", FileMode.Create);
             fileStream.Write(normalsBytes, 0, normalsBytes.Length);
             fileStream.Flush();
             fileStream.Close();
+            Progress = SampleCount;
             Baking = false;
+            print("Baking done, sample count " + SampleCount);
+            if (LayerCount > 1) {
+                verticesTexture.filterMode = FilterMode.Point;
+                normalsTexture.filterMode = FilterMode.Point;
+            }
         }
 
         private void EvaluateWavesFft(float time) {
@@ -156,12 +171,12 @@ namespace WaterVersionTest {
                     var len = Mathf.Sqrt(kx * kx + kz * kz);
                     index = i * Size + j;
 
-                    _hTilde[index] = HTilde(time, j, i);
+                    _hTilde[index] = HTilde(time, i, j);
                     _hTildeSlopex[index] = _hTilde[index] * new Complex(0, kx);
                     _hTildeSlopez[index] = _hTilde[index] * new Complex(0, kz);
                     if (len < 0.000001f) {
-                        _hTildeDx[index] = new Complex(0.0f, 0.0f);
-                        _hTildeDz[index] = new Complex(0.0f, 0.0f);
+                        _hTildeDx[index] = new Complex();
+                        _hTildeDz[index] = new Complex();
                     } else {
                         _hTildeDx[index] = _hTilde[index] * new Complex(0, -kx / len);
                         _hTildeDz[index] = _hTilde[index] * new Complex(0, -kz / len);
@@ -248,7 +263,7 @@ namespace WaterVersionTest {
             float kLength4 = kLength2 * kLength2;
 
             float kDotW = Vector2.Dot(k.normalized, Wind.normalized);
-            float kDotW2 = kDotW * kDotW;
+            float kDotW2 = kDotW * kDotW;// * kDotW * kDotW * kDotW * kDotW;
 
             float wLength = Wind.magnitude;
             float l = wLength * wLength / Physics.gravity.magnitude;
@@ -262,7 +277,7 @@ namespace WaterVersionTest {
         }
 
         float Dispersion(int i, int j) {
-            float w0 = 2.0f * Mathf.PI / 200.0f;
+            float w0 = 2.0f * Mathf.PI / Cycle;
             float kx = Mathf.PI * (2 * i - Size + 1) / Length;
             float kz = Mathf.PI * (2 * j - Size + 1) / Length;
             return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;

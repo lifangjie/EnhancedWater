@@ -1,10 +1,13 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using WaterVersionTest;
 
 namespace _Scripts.Editor {
     [CustomEditor(typeof(Ocean))]
+    [CanEditMultipleObjects]
     public class OceanEditor : UnityEditor.Editor {
         SerializedProperty _sampleCount;
         SerializedProperty _wind;
@@ -23,9 +26,6 @@ namespace _Scripts.Editor {
             _layerCount = serializedObject.FindProperty("LayerCount");
         }
 
-        private float _startTime;
-        private float _progress;
-        private float _seconds;
 
         public override void OnInspectorGUI() {
             serializedObject.Update();
@@ -38,8 +38,6 @@ namespace _Scripts.Editor {
             serializedObject.ApplyModifiedProperties();
 
             if (GUILayout.Button("Bake into texture")) {
-                _seconds = _size.intValue * _size.intValue * _sampleCount.intValue / 65536f;
-                _startTime = Time.realtimeSinceStartup;
                 EditorApplication.update -= DisplayProgressBar;
                 EditorApplication.update += DisplayProgressBar;
                 var ocean = (Ocean) target;
@@ -49,11 +47,12 @@ namespace _Scripts.Editor {
             }
         }
 
+
         private void DisplayProgressBar() {
-            _progress = Time.realtimeSinceStartup - _startTime;
-            if (_progress < _seconds && ((Ocean) target).Baking) {
+            var ocean = (Ocean) target;
+            if (ocean.Progress < _sampleCount.intValue || ocean.Baking) {
                 EditorUtility.DisplayProgressBar("Bake into texture", "Bake fft waves into textures",
-                    _progress / _seconds);
+                    ocean.Progress * 1f / _sampleCount.intValue);
             } else {
                 EditorUtility.ClearProgressBar();
                 EditorApplication.update -= DisplayProgressBar;

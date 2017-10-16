@@ -11,8 +11,8 @@ Shader "Custom/WaterShaderTest" {
 		//[HideInInspector] _ReflectionTex("Internal Reflection", 2D) = "Blue" {}
 		//[HideInInspector] _RefractionTex("Internal Refraction", 2D) = "Blue" {}
 		//[HideInInspector] _DepthTex("Internal Depth", 2D) = "Blue" {}
-		_VerticesTex("Vertices Texture", 2D) = "Black" {}
-		_NormalsTex("Normals Texture", 2D) = "Black" {}
+		[NoScaleOffset] _VerticesTex("Vertices Texture", 2D) = "Black" {}
+		[NoScaleOffset] _NormalsTex("Normals Texture", 2D) = "Black" {}
 
 		_GerstnerIntensity("Per vertex displacement", Float) = 1.0
 		_GAmplitude ("Wave Amplitude", Vector) = (0.3 ,0.35, 0.25, 0.25)
@@ -106,11 +106,11 @@ Shader "Custom/WaterShaderTest" {
 			{
 				v2f o;
 				
-				v.uv.y += _Time.y / 64;
-				//v.uv.xy *= _VerticesTex_ST.xy;
+				//v.uv.y += (_Time.y%7.8 - 0.4) / 2048;
 				//v.uv.w = 0;
-				
-				v.vertex = half4(tex2Dlod(_VerticesTex, v.uv).xyz, 1);
+				half4 uv = half4(v.uv.x, v.uv.y + (_Time.y/32), 0 , 0);//%256) / 4096, 0 ,0);
+			
+				v.vertex = half4(tex2Dlod(_VerticesTex, uv).xyz, 1);
 
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 				#if defined (GERSTNER_ON)
