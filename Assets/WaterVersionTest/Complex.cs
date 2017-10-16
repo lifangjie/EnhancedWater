@@ -123,13 +123,13 @@ namespace WaterVersionTest {
         /// <returns>打印字符串</returns>
         public override string ToString() {
             if (Real == 0 && _imaginary == 0) {
-                return string.Format("{0}", 0);
+                return $"{0}";
             }
             if (Real == 0 && (_imaginary != 1 && _imaginary != -1)) {
-                return string.Format("{0} i", _imaginary);
+                return $"{_imaginary} i";
             }
             if (_imaginary == 0) {
-                return string.Format("{0}", Real);
+                return $"{Real}";
             }
             if (_imaginary == 1) {
                 return string.Format("i");
@@ -138,9 +138,9 @@ namespace WaterVersionTest {
                 return string.Format("- i");
             }
             if (_imaginary < 0) {
-                return string.Format("{0} - {1} i", Real, -_imaginary);
+                return $"{Real} - {-_imaginary} i";
             }
-            return string.Format("{0} + {1} i", Real, _imaginary);
+            return $"{Real} + {_imaginary} i";
         }
 
         #endregion
