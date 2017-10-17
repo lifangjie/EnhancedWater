@@ -277,7 +277,7 @@ namespace WaterVersionTest {
         }
 
         float Dispersion(int i, int j) {
-            float w0 = 2.0f * Mathf.PI / Cycle;
+            float w0 = 2.0f * Mathf.PI / 200;//Cycle;
             float kx = Mathf.PI * (2 * i - Size + 1) / Length;
             float kz = Mathf.PI * (2 * j - Size + 1) / Length;
             return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;
@@ -289,7 +289,7 @@ namespace WaterVersionTest {
         }
 
         Complex HTilde(float time, int i, int j) {
-            int index = i * Size + j;
+            int index = j * Size + i;
 
             Complex htilde0 = _htilde0[index]; //.Real, _htilde0[index].Imaginary);
             Complex htilde0Mkconj = _htilde0MkConj[index]; //.Real, _htilde0MkConj[index].Imaginary);

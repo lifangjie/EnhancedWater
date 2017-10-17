@@ -37,10 +37,13 @@ namespace _Scripts.Editor {
             EditorGUILayout.PropertyField(_layerCount);
             serializedObject.ApplyModifiedProperties();
 
+            var ocean = (Ocean) target;
+            if (GUILayout.Button("Update mesh")) {
+                ocean.UpdateMesh();
+            }
             if (GUILayout.Button("Bake into texture")) {
                 EditorApplication.update -= DisplayProgressBar;
                 EditorApplication.update += DisplayProgressBar;
-                var ocean = (Ocean) target;
                 ocean.StopAllCoroutines();
                 ocean.UpdateMesh();
                 ocean.StartCoroutine(ocean.BakeIntoTexture());
