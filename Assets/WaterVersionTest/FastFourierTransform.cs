@@ -23,7 +23,7 @@ namespace WaterVersionTest {
         */
 
         public FastFourierTransform(int N) {
-            this.N = (uint)N;
+            this.N = (uint) N;
             reversed = null;
             pi2 = Mathf.PI * 2;
             log_2_N = (uint) (Mathf.Log(N) / Mathf.Log(2));
@@ -46,6 +46,10 @@ namespace WaterVersionTest {
 
             c[0] = new Complex[N];
             c[1] = new Complex[N];
+            for (int i = 0; i < c[0].Length; i++) {
+                c[0][i] = new Complex();
+                c[1][i] = new Complex();
+            }
             which = 0;
         }
 

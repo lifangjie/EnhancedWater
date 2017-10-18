@@ -250,7 +250,7 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 202836012}
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 4300000, guid: 2577ee7fd11cd3641b60170ac174dbe3, type: 3}
 --- !u!4 &202836016
 Transform:
   m_ObjectHideFlags: 0
@@ -974,6 +974,7 @@ GameObject:
   - component: {fileID: 811960636}
   - component: {fileID: 811960635}
   - component: {fileID: 811960634}
+  - component: {fileID: 811960639}
   - component: {fileID: 811960638}
   m_Layer: 4
   m_Name: WaterTest
@@ -1070,11 +1071,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Size: 64
   Length: 64
-  Wind: {x: 8, y: 4}
+  Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 1
   LayerCount: 8
   SampleCount: 32
+--- !u!114 &811960639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 811960633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2f80dff5afa4c24930a326a0577cc72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Size: 64
+  Length: 64
+  Wind: {x: 32, y: 32}
+  PhillipsSpectrum: 0.0005
+  Cycle: 200
+  LayerCount: 1
+  SampleCount: 512
+  Baking: 0
+  Progress: 512
 --- !u!1 &828015682
 GameObject:
   m_ObjectHideFlags: 0

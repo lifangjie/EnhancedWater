@@ -289,7 +289,7 @@ namespace WaterVersionTest {
         }
 
         Complex HTilde(float time, int i, int j) {
-            int index = j * Size + i;
+            int index = i * Size + j;
 
             Complex htilde0 = _htilde0[index]; //.Real, _htilde0[index].Imaginary);
             Complex htilde0Mkconj = _htilde0MkConj[index]; //.Real, _htilde0MkConj[index].Imaginary);

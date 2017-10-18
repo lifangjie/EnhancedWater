@@ -112,7 +112,7 @@ Shader "Custom/WaterShaderTest" {
 				half4 uv = half4(v.uv.x, v.uv.y + (_Time.y/200), 0 , 0);//%256) / 4096, 0 ,0);
 				o.uv = uv;
 			
-				//v.vertex = half4(tex2Dlod(_VerticesTex, uv).xyz, 1);
+				v.vertex = half4(tex2Dlod(_VerticesTex, uv).xyz, 1);
 
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 				#if defined (GERSTNER_ON)
