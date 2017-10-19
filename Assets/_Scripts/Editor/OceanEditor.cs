@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEditorInternal;
 using UnityEngine;
 using WaterVersionTest;
 
@@ -39,7 +42,12 @@ namespace _Scripts.Editor {
 
             var ocean = (Ocean) target;
             if (GUILayout.Button("Update mesh")) {
-                ocean.UpdateMesh();
+                //ocean.GetComponent<MeshFilter>().sharedMesh = ocean.UpdateMesh();
+                var mesh = ocean.UpdateMesh();
+                if (!AssetDatabase.Contains(mesh)) {
+                    AssetDatabase.CreateAsset(mesh, "Assets/Resources/mesh.asset");
+                }
+                //ocean.UpdateMesh();
             }
             if (GUILayout.Button("Bake into texture")) {
                 EditorApplication.update -= DisplayProgressBar;

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace WaterVersionTest {
@@ -38,6 +39,8 @@ namespace WaterVersionTest {
         private void Start() {
             _width = Size * Size / LayerCount;
             _height = SampleCount * LayerCount;
+            //_waterMesh = Resources.Load<Mesh>("mesh");
+            //GetComponent<MeshFilter>().sharedMesh = _waterMesh;
             Texture2D verticesTex = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
             verticesTex.LoadRawTextureData(Resources.Load<TextAsset>("vertices").bytes);
             verticesTex.Apply();
@@ -53,7 +56,7 @@ namespace WaterVersionTest {
             Resources.UnloadUnusedAssets();
         }
 
-        public void UpdateMesh() {
+        public Mesh UpdateMesh() {
             _width = Size * Size / LayerCount;
             _height = SampleCount * LayerCount;
             _waterMesh = GetComponent<MeshFilter>().sharedMesh;
@@ -108,6 +111,8 @@ namespace WaterVersionTest {
             _waterMesh.uv = _uvs;
             _waterMesh.normals = _normals;
             _waterMesh.triangles = triangles;
+            //return Instantiate(_waterMesh);
+            return _waterMesh;
         }
 
         public bool Baking;
