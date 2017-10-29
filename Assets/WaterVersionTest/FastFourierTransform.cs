@@ -67,7 +67,7 @@ namespace WaterVersionTest {
             return new Complex(Mathf.Cos(pi2 * x / N), Mathf.Sin(pi2 * x / N));
         }
 
-        public void Fft(Complex[] input, Complex[] output, int stride, int offset) {
+        public void Fft(Complex[] input, int stride, int offset) {
             for (int i = 0; i < N; i++) {
                 c[which][i] = input[reversed[i] * stride + offset];
             }
@@ -95,7 +95,7 @@ namespace WaterVersionTest {
             }
 
             for (int i = 0; i < N; i++) {
-                output[i * stride + offset] = c[which][i];
+                input[i * stride + offset] = c[which][i];
             }
         }
     }

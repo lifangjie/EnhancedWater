@@ -13,6 +13,7 @@ Shader "Custom/WaterShaderTest" {
 		//[HideInInspector] _DepthTex("Internal Depth", 2D) = "Blue" {}
 		[NoScaleOffset] _VerticesTex("Vertices Texture", 2D) = "Black" {}
 		[NoScaleOffset] _NormalsTex("Normals Texture", 2D) = "Black" {}
+		[NoScaleOffset] _htile0Tex("htile0 Texture", 2D) = "Black" {}
 
 		_GerstnerIntensity("Per vertex displacement", Float) = 1.0
 		_GAmplitude ("Wave Amplitude", Vector) = (0.3 ,0.35, 0.25, 0.25)
@@ -101,18 +102,21 @@ Shader "Custom/WaterShaderTest" {
 			};
 
             sampler2D _VerticesTex;
-            float4 _VerticesTex_ST;
             sampler2D _NormalsTex;
-			v2f vert(appdata v)
+            sampler2D _htile0Tex;
+			v2f vert(appdata v, uint vid : SV_VertexID)
 			{
 				v2f o;
 				
 				//v.uv.y += (_Time.y%7.8 - 0.4) / 2048;
 				//v.uv.w = 0;
-				half4 uv = half4(v.uv.x, v.uv.y + (_Time.y/200), 0 , 0);//%256) / 4096, 0 ,0);
+				//half4 uv = half4(v.uv.x, v.uv.y + (_Time.y/200), 0 , 0);//%256) / 4096, 0 ,0);
+				float id = vid + 0.5;
+				half4 uv = half4(id / 4096, v.uv.y + (_Time.y/16), 0 , 0);//%256) / 4096, 0 ,0);
 				o.uv = uv;
 			
 				v.vertex = half4(tex2Dlod(_VerticesTex, uv).xyz, 1);
+				v.normal = tex2Dlod(_NormalsTex, uv).xyz;
 
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 				#if defined (GERSTNER_ON)
@@ -140,7 +144,8 @@ Shader "Custom/WaterShaderTest" {
 					o.worldNormal += value;
 				}
 				#else
-				o.worldNormal = half3(0,1,0);
+				//o.worldNormal = half3(0,1,0);
+				o.worldNormal = v.normal;
 				#endif
 
 				// Finish transforming the vetex by applying the projection matrix
@@ -209,7 +214,7 @@ Shader "Custom/WaterShaderTest" {
 
 				half4 uv2 = i.ref; uv2.xy += bump.xz * _RefrDistort;
 				half4 refr = half4(tex2Dproj(_RefractionTex, i.ref));
-				refr = lerp(refr, _WaterColor, fade);
+				//refr = lerp(refr, _WaterColor, fade);
 				#endif
 
 				// final color is between refracted and reflected based on fresnel
@@ -217,7 +222,7 @@ Shader "Custom/WaterShaderTest" {
 
 				half fresnel = 0.02 + 0.97*pow((1-dot(viewDir, bump)),2);
 				#if defined(WATER_REFRACTIVE)
-				fresnel *= fade;
+				//fresnel *= fade;
 				color = lerp(refr, refl, fresnel);
 				#endif
 
@@ -236,10 +241,11 @@ Shader "Custom/WaterShaderTest" {
 
 				#if HAS_REFRACTION
                 //return refr;
-				half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflect(-viewDir, i.worldNormal));
-				// decode cubemap data into actual color
-				half3 skyColor = DecodeHDR (skyData, unity_SpecCube0_HDR);
-				return half4(skyColor,1);
+//				half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflect(-viewDir, i.worldNormal));
+//				// decode cubemap data into actual color
+//				half4 skyColor = half4(DecodeHDR (skyData, unity_SpecCube0_HDR),1);
+//				color = lerp(refr, skyColor, fresnel);
+//				return color;
                 #endif
 				return color;
 			}

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using UnityEditorInternal;
+﻿using UnityEditor;
 using UnityEngine;
 using WaterVersionTest;
 
@@ -18,6 +12,8 @@ namespace _Scripts.Editor {
         SerializedProperty _length;
         SerializedProperty _cycle;
         SerializedProperty _layerCount;
+        SerializedProperty _phillipsSpectrum;
+        SerializedProperty _computeShader;
 
         void OnEnable() {
             // Setup the SerializedProperties.
@@ -27,6 +23,8 @@ namespace _Scripts.Editor {
             _length = serializedObject.FindProperty("Length");
             _cycle = serializedObject.FindProperty("Cycle");
             _layerCount = serializedObject.FindProperty("LayerCount");
+            _phillipsSpectrum = serializedObject.FindProperty("PhillipsSpectrum");
+            _computeShader = serializedObject.FindProperty("ComputeShader");
         }
 
 
@@ -38,6 +36,8 @@ namespace _Scripts.Editor {
             EditorGUILayout.PropertyField(_sampleCount);
             EditorGUILayout.PropertyField(_cycle);
             EditorGUILayout.PropertyField(_layerCount);
+            EditorGUILayout.PropertyField(_phillipsSpectrum);
+            EditorGUILayout.PropertyField(_computeShader);
             serializedObject.ApplyModifiedProperties();
 
             var ocean = (Ocean) target;

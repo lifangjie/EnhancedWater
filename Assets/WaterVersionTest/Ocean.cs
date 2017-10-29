@@ -81,8 +81,8 @@ namespace WaterVersionTest {
                     // set vertices
                     int index = i * Size + j;
 
-                    _htilde0[index] = hTilde_0(i, j);
-                    _htilde0MkConj[index] = hTilde_0(-i, -j).Conjugate();
+                    _htilde0[index] = hTilde_0(j, i);
+                    _htilde0MkConj[index] = hTilde_0(-j, -i).Conjugate();
 
                     _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / (Size - 1);
                     _originalVertices[index].y = _vertices[index].y = 0;
@@ -111,12 +111,14 @@ namespace WaterVersionTest {
             _waterMesh.uv = _uvs;
             _waterMesh.normals = _normals;
             _waterMesh.triangles = triangles;
+            _waterMesh.RecalculateTangents();
             //return Instantiate(_waterMesh);
             return _waterMesh;
         }
 
         public bool Baking;
         public int Progress;
+        public ComputeShader ComputeShader;
 
         public IEnumerator BakeIntoTexture() {
             Baking = true;
@@ -129,40 +131,86 @@ namespace WaterVersionTest {
             _hTildeSlopez = new Complex[Size * Size];
             _hTildeDx = new Complex[Size * Size];
             _hTildeDz = new Complex[Size * Size];
-            Texture2D verticesTexture = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
-            Texture2D normalsTexture = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
-            for (int frame = 0; frame < SampleCount; frame++) {
-                EvaluateWavesFft(Cycle / SampleCount * frame);
-                for (int i = 0; i < Size * Size; i++) {
-                    verticesTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
-                        new Color(_vertices[i].x, _vertices[i].y, _vertices[i].z));
-                    normalsTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
-                        new Color(_normals[i].x, _normals[i].y, _normals[i].z));
-                }
-                Progress = frame;
-                yield return null;
-            }
-            verticesTexture.Apply();
-            normalsTexture.Apply();
-            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", verticesTexture);
-            GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", normalsTexture);
-            byte[] verticesBytes = verticesTexture.GetRawTextureData();
-            FileStream fileStream = File.Open(Application.dataPath + "/Resources/vertices.bytes", FileMode.Create);
-            fileStream.Write(verticesBytes, 0, verticesBytes.Length);
-            fileStream.Flush();
-            fileStream.Close();
-            byte[] normalsBytes = normalsTexture.GetRawTextureData();
-            fileStream = File.Open(Application.dataPath + "/Resources/normals.bytes", FileMode.Create);
-            fileStream.Write(normalsBytes, 0, normalsBytes.Length);
-            fileStream.Flush();
-            fileStream.Close();
+//            Texture2D verticesTexture = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
+//            Texture2D normalsTexture = new Texture2D(_width, _height, TextureFormat.RGBAHalf, false);
+//            for (int frame = 0; frame < SampleCount; frame++) {
+//                EvaluateWavesFft(Cycle / SampleCount * frame);
+//                for (int i = 0; i < Size * Size; i++) {
+//                    verticesTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
+//                        new Color(_vertices[i].x, _vertices[i].y, _vertices[i].z));
+//                    normalsTexture.SetPixel(i % _width, i / _width * SampleCount + frame,
+//                        new Color(_normals[i].x, _normals[i].y, _normals[i].z));
+//                }
+//                Progress = frame;
+//                yield return null;
+//            }
+//            verticesTexture.Apply();
+//            normalsTexture.Apply();
+//            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", verticesTexture);
+//            GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", normalsTexture);
+//            byte[] verticesBytes = verticesTexture.GetRawTextureData();
+//            FileStream fileStream = File.Open(Application.dataPath + "/Resources/vertices.bytes", FileMode.Create);
+//            fileStream.Write(verticesBytes, 0, verticesBytes.Length);
+//            fileStream.Flush();
+//            fileStream.Close();
+//            byte[] normalsBytes = normalsTexture.GetRawTextureData();
+//            fileStream = File.Open(Application.dataPath + "/Resources/normals.bytes", FileMode.Create);
+//            fileStream.Write(normalsBytes, 0, normalsBytes.Length);
+//            fileStream.Flush();
+//            fileStream.Close();
+            //Texture2D htile0Tex = new Texture2D(Size, Size, TextureFormat.RGBAHalf, false);
+//            for (int i = 0; i < Size; i++) {
+//                for (int j = 0; j < Size; j++) {
+////                    uint wang_hash(uint seed)
+////                    {
+//                    uint seed = (uint) (i * Size + j);
+//                        seed = (seed ^ 61) ^ (seed >> 16);
+//                        seed *= 9;
+//                        seed = seed ^ (seed >> 4);
+//                        seed *= 0x27d4eb2d;
+//                        seed = seed ^ (seed >> 15);
+//                        seed = 1664525 * seed + 1013904223;
+//                    float temp = seed / (float) uint.MaxValue;
+//                      //  print(seed/(float)uint.MaxValue);
+////                    }
+//                    //Complex temp = _htilde0[i * Size + j];
+//                    //htile0Tex.SetPixel(i, j, new Color(temp.Real, temp.Imaginary, 0));
+//                    Complex gaussian = new Complex(1, 1).Multiply(Phillips(j, i));
+//                    htile0Tex.SetPixel(i, j, new Color(GaussianRandomVariable().Real, GaussianRandomVariable().Imaginary, 0));
+//                }
+//            }
+//            htile0Tex.Apply();
+            RenderTexture htile0Tex =
+                new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBHalf) {enableRandomWrite = true};
+            htile0Tex.Create();
+            int kernelHandler = ComputeShader.FindKernel("CSMain");
+            ComputeShader.SetTexture(kernelHandler, "Result", htile0Tex);
+            ComputeShader.SetInt("Size", Size);
+            ComputeShader.SetFloat("Length", Length);
+            ComputeShader.SetFloat("PhillipsSpectrum", PhillipsSpectrum);
+            ComputeShader.SetFloats("Wind", Wind.x, Wind.y);
+            ComputeShader.SetFloat("Gravity", Physics.gravity.magnitude);
+            //ComputeBuffer buffer = new ComputeBuffer(Size * Size, 1, );
+                
+            ComputeShader.Dispatch(kernelHandler,Size/8,Size/8,1);
+            //htile0Tex.Apply();
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_htile0Tex", htile0Tex);
+//            Texture2D temp = new Texture2D(Size, Size, TextureFormat.RGBAHalf, false);
+//            RenderTexture.active = htile0Tex;
+//            temp.ReadPixels(new Rect(0, 0, Size, Size),0 ,0 );
+//            temp.Apply();
+//            byte[] htile0Bytes = temp.EncodeToEXR();
+//            FileStream fileStream = File.Open(Application.dataPath + "/Resources/htile0.exr", FileMode.Create);
+//            fileStream.Write(htile0Bytes, 0, htile0Bytes.Length);
+//            fileStream.Flush();
+//            fileStream.Close();
             Progress = SampleCount;
             Baking = false;
             print("Baking done, sample count " + SampleCount);
-            if (LayerCount > 1) {
-                verticesTexture.filterMode = FilterMode.Point;
-                normalsTexture.filterMode = FilterMode.Point;
-            }
+//            if (LayerCount > 1) {
+//                verticesTexture.filterMode = FilterMode.Point;
+//                normalsTexture.filterMode = FilterMode.Point;
+//            }
         }
 
         private void EvaluateWavesFft(float time) {
@@ -190,18 +238,18 @@ namespace WaterVersionTest {
             }
 
             for (int i = 0; i < Size; i++) {
-                _fastFourierTransform.Fft(_hTilde, _hTilde, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeSlopex, _hTildeSlopex, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeSlopez, _hTildeSlopez, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeDx, _hTildeDx, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeDz, _hTildeDz, 1, i * Size);
+                _fastFourierTransform.Fft(_hTilde, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeSlopex, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeSlopez, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeDx, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeDz, 1, i * Size);
             }
             for (int i = 0; i < Size; i++) {
-                _fastFourierTransform.Fft(_hTilde, _hTilde, Size, i);
-                _fastFourierTransform.Fft(_hTildeSlopex, _hTildeSlopex, Size, i);
-                _fastFourierTransform.Fft(_hTildeSlopez, _hTildeSlopez, Size, i);
-                _fastFourierTransform.Fft(_hTildeDx, _hTildeDx, Size, i);
-                _fastFourierTransform.Fft(_hTildeDz, _hTildeDz, Size, i);
+                _fastFourierTransform.Fft(_hTilde, Size, i);
+                _fastFourierTransform.Fft(_hTildeSlopex, Size, i);
+                _fastFourierTransform.Fft(_hTildeSlopez, Size, i);
+                _fastFourierTransform.Fft(_hTildeDx, Size, i);
+                _fastFourierTransform.Fft(_hTildeDz, Size, i);
             }
 
             int[] signs = {1, -1};
@@ -260,7 +308,7 @@ namespace WaterVersionTest {
         }
 
         float Phillips(int i, int j) {
-            Vector2 k = new Vector2(Mathf.PI * (2 * i - Size + 1) / Length, Mathf.PI * (2 * j - Size + 1) / Length);
+            Vector2 k = new Vector2(Mathf.PI * (2 * i - Size) / Length, Mathf.PI * (2 * j - Size) / Length);
             float kLength = k.magnitude;
             if (kLength < 0.000001) return 0f;
 
@@ -277,15 +325,16 @@ namespace WaterVersionTest {
             float damping = 0.001f;
             float l2Damping2 = l2 * damping * damping;
 
-            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * l2)) / kLength4 * kDotW2 *
-                   Mathf.Exp(-kLength2 * l2Damping2);
+            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * l2)) / kLength4 * kDotW2 * Mathf.Exp(-kLength2 * l2Damping2);
         }
 
         float Dispersion(int i, int j) {
             float w0 = 2.0f * Mathf.PI / 200;//Cycle;
-            float kx = Mathf.PI * (2 * i - Size + 1) / Length;
-            float kz = Mathf.PI * (2 * j - Size + 1) / Length;
-            return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;
+            float kx = Mathf.PI * (2 * i - Size) / Length;
+            float kz = Mathf.PI * (2 * j - Size) / Length;
+            //return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;
+            Vector2 k = new Vector2(Mathf.PI * (2 * i - Size) / Length, Mathf.PI * (2 * j - Size) / Length);
+            return Mathf.Sqrt(Physics.gravity.magnitude * k.magnitude);
         }
 
         Complex hTilde_0(int i, int j) {
@@ -306,6 +355,7 @@ namespace WaterVersionTest {
 
             Complex c0 = new Complex(cos, sin);
             Complex c1 = new Complex(cos, -sin);
+            //return htilde0.Multiply(temp0)  + htilde0Mkconj.Multiply(temp1);
 
             return htilde0 * c0 + htilde0Mkconj * c1;
         }

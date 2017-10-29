@@ -151,18 +151,18 @@ namespace WaterVersionTest {
             }
 
             for (int i = 0; i < Size; i++) {
-                _fastFourierTransform.Fft(_hTilde, _hTilde, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeSlopex, _hTildeSlopex, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeSlopez, _hTildeSlopez, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeDx, _hTildeDx, 1, i * Size);
-                _fastFourierTransform.Fft(_hTildeDz, _hTildeDz, 1, i * Size);
+                _fastFourierTransform.Fft(_hTilde, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeSlopex, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeSlopez, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeDx, 1, i * Size);
+                _fastFourierTransform.Fft(_hTildeDz, 1, i * Size);
             }
             for (int i = 0; i < Size; i++) {
-                _fastFourierTransform.Fft(_hTilde, _hTilde, Size, i);
-                _fastFourierTransform.Fft(_hTildeSlopex, _hTildeSlopex, Size, i);
-                _fastFourierTransform.Fft(_hTildeSlopez, _hTildeSlopez, Size, i);
-                _fastFourierTransform.Fft(_hTildeDx, _hTildeDx, Size, i);
-                _fastFourierTransform.Fft(_hTildeDz, _hTildeDz, Size, i);
+                _fastFourierTransform.Fft(_hTilde, Size, i);
+                _fastFourierTransform.Fft(_hTildeSlopex, Size, i);
+                _fastFourierTransform.Fft(_hTildeSlopez, Size, i);
+                _fastFourierTransform.Fft(_hTildeDx, Size, i);
+                _fastFourierTransform.Fft(_hTildeDz, Size, i);
             }
 
             int[] signs = {1, -1};
