@@ -1,0 +1,40 @@
+#pragma kernel CSMain
+
+#include "UnityCG.cginc"
+
+uniform float Length;
+uniform float Gravity;
+uniform int Size;
+uniform sampler2D h0Tex;
+
+RWTexture2D<float4> Result;
+        
+float Dispersion(float i, float j) {
+    float2 k = float2(UNITY_PI * (2 * i - Size) / Length, UNITY_PI * (2 * j - Size) / Length);
+    return sqrt(Gravity * length(k));
+}
+
+float2 HTilde(float2 h0, float2 h0Mkconj, float i, float j) {
+    
+    float omegat = Dispersion(i, j) * Time.y;
+
+    float cosTemp = cos(omegat);
+    float sinTemp = sin(omegat);
+
+    float2 c0 = float2(cosTemp, sinTemp);
+    float2 c1 = float2(cosTemp, -sinTemp);
+
+    return ComplexMultiply(h0, c0) + ComplexMultiply(h0Mkconj, c1);
+}
+
+float2 ComplexMultiply(float2 a, float2 b) {
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float4 h0 = tex2D(h0Tex, float2(float(id.x) + 0.5)/Size, float(id.y) + 0.5)/Size));
+    float2 hkt = HTilde(h0.xy, h0.zw, id.x, id.y);
+    Result[id.xy] = float4(hkt.xy, hkt.xy);
+}
