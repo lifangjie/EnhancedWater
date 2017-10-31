@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.IO;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace WaterVersionTest {
     //[ExecuteInEditMode]
-    public class OceanRealTime : MonoBehaviour {
+    public class OceanCpuRealTime : MonoBehaviour {
         private Mesh _waterMesh;
         public int Size = 64;
         private int _sizePlus1;

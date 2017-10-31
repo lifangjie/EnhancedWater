@@ -5,18 +5,23 @@
 uniform float Length;
 uniform float Gravity;
 uniform int Size;
-uniform sampler2D h0Tex;
+Texture2D<float4> h0Tex;
 
-RWTexture2D<float4> Result;
+RWTexture2D<float2> Hkt;
+RWTexture2D<float2> Dx;
+RWTexture2D<float2> Dz;
         
-float Dispersion(float i, float j) {
-    float2 k = float2(UNITY_PI * (2 * i - Size) / Length, UNITY_PI * (2 * j - Size) / Length);
+float Dispersion(float2 k) {
     return sqrt(Gravity * length(k));
 }
 
-float2 HTilde(float2 h0, float2 h0Mkconj, float i, float j) {
+float2 ComplexMultiply(float2 a, float2 b) {
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+float2 HTilde(float2 h0, float2 h0Mkconj, float2 k) {
     
-    float omegat = Dispersion(i, j) * Time.y;
+    float omegat = Dispersion(k) * _Time.y;
 
     float cosTemp = cos(omegat);
     float sinTemp = sin(omegat);
@@ -27,14 +32,91 @@ float2 HTilde(float2 h0, float2 h0Mkconj, float i, float j) {
     return ComplexMultiply(h0, c0) + ComplexMultiply(h0Mkconj, c1);
 }
 
-float2 ComplexMultiply(float2 a, float2 b) {
-    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+void GetButterflyValues( uint passIndex, uint x, out uint2 indices, out float2 weights )
+{
+	int sectionWidth = 2 << passIndex;
+	int halfSectionWidth = sectionWidth / 2;
+
+	int sectionStartOffset = x & ~(sectionWidth - 1);
+	int halfSectionOffset = x & (halfSectionWidth - 1);
+	int sectionOffset = x & (sectionWidth - 1);
+
+	sincos( 2.0*PI*sectionOffset / (float)sectionWidth, weights.y, weights.x );
+	weights.y = -weights.y;
+
+	indices.x = sectionStartOffset + halfSectionOffset;
+	indices.y = sectionStartOffset + halfSectionOffset + halfSectionWidth;
+
+	if( passIndex == 0 )
+	{
+		indices = reversebits(indices) >> (32 - BUTTERFLY_COUNT) & (LENGTH - 1);
+	}
 }
+
+groupshared float3 pingPongArray[4][LENGTH];
+void ButterflyPass(int passIndex, uint x, uint t0, uint t1, out float3 resultR, out float3 resultI)
+{
+    uint2 Indices;
+    float2 Weights;
+    GetButterflyValues( passIndex, x, Indices, Weights );
+ 
+    float3 inputR1 = pingPongArray[t0][Indices.x];
+    float3 inputI1 = pingPongArray[t1][Indices.x];
+ 
+    float3 inputR2 = pingPongArray[t0][Indices.y];
+    float3 inputI2 = pingPongArray[t1][Indices.y];
+ 
+    resultR = inputR1 + Weights.x * inputR2 - Weights.y * inputI2;
+    resultI = inputI1 + Weights.y * inputR2 + Weights.x * inputI2;
+}
+ 
+[numthreads( WIDTH, 1, 1 )]
+void ButterflySLM(uint3 position : SV_DispatchThreadID)
+{
+    // Load entire row or column into scratch array
+    pingPongArray[0][position.x].xyz = TextureSourceR[position];
+    pingPongArray[1][position.x].xyz = TextureSourceI[position];
+     
+    uint4 textureIndices = uint4(0, 1, 2, 3);
+ 
+    for( int i = 0; i < BUTTERFLY_COUNT-1; i++ )
+    {
+        GroupMemoryBarrierWithGroupSync();
+        ButterflyPass( i, position.x, textureIndices.x, textureIndices.y,
+        pingPongArray[textureIndices.z][position.x].xyz,
+        pingPongArray[textureIndices.w][position.x].xyz );
+        textureIndices.xyzw = textureIndices.zwxy;
+    }
+ 
+    // Final butterfly will write directly to the target texture
+    GroupMemoryBarrierWithGroupSync();
+    ButterflyPass(BUTTERFLY_COUNT - 1, position.x, textureIndices.x, textureIndices.y, TextureTargetR[position], TextureTargetI[position]);
+}
+
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    float4 h0 = tex2D(h0Tex, float2(float(id.x) + 0.5)/Size, float(id.y) + 0.5)/Size));
-    float2 hkt = HTilde(h0.xy, h0.zw, id.x, id.y);
-    Result[id.xy] = float4(hkt.xy, hkt.xy);
+    float2 k = float2(UNITY_PI * (2 * float(id.x) - Size) / Length, UNITY_PI * (2 * float(id.y) - Size) / Length);
+    float4 h0 = h0Tex[id.xy];
+    float2 hkt = HTilde(h0.xy, h0.zw, k);
+    
+    float kLength = length(k);
+    float2 dx = ComplexMultiply(hkt, float2(0, -k.x / kLength));
+    float2 dz = ComplexMultiply(hkt, float2(0, -k.y / kLength));
+    
+    //temp
+    Hkt[id.xy] = hkt;
+    Dx[id.xy] = dx;
+    Dz[id.xy] = dz;
+    //fft
+    
+    
+    int2 signs = int2(1, -1);
+    int sign = signs[(id.x + id.y) & 1];
+    
+    
+    
+    float height = hkt.x * signs;
+    
 }
