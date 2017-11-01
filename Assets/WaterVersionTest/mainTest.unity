@@ -1068,25 +1068,32 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24299b3c9aed45e8b428ccbd9142543c, type: 3}
+  m_Script: {fileID: 11500000, guid: 287baf1b9d9843c0824e8fac817f3a07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 64
-  Length: 256
-  Wind: {x: 1, y: 2}
+  Size: 512
+  Length: 2000
   PhillipsSpectrum: 0.0005
-  Cycle: 1
-  LayerCount: 8
-  SampleCount: 32
+  H0: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
+  Hkt: {fileID: 7200000, guid: dec7fe11925d4fa288ed8c3edd25d756, type: 3}
+  Fft: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
+  Wind: {x: 32, y: 32}
+  _h0Tex: {fileID: 0}
+  hkt: {fileID: 0}
+  dx: {fileID: 0}
+  dz: {fileID: 0}
+  ButterflyTex: {fileID: 0}
+  TextureTargetR: {fileID: 0}
+  TextureTargetI: {fileID: 0}
 --- !u!114 &811960639
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2f80dff5afa4c24930a326a0577cc72, type: 3}
   m_Name: 
