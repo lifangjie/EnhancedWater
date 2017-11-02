@@ -16,15 +16,6 @@ uint rand_lcg()
     return rng_state;
 }
 
-uint rand_xorshift()
-{
-    // Xorshift algorithm from George Marsaglia's paper
-    rng_state ^= (rng_state << 13);
-    rng_state ^= (rng_state >> 17);
-    rng_state ^= (rng_state << 5);
-    return rng_state;
-}
-
 uint wang_hash(uint seed)
 {
     seed = (seed ^ 61) ^ (seed >> 16);
@@ -40,6 +31,6 @@ void SetSeed(uint seed)
 }
 float Rand()
 {
-    return float(rand_xorshift())/4294967296.0;
+    return float(rand_lcg())/4294967296.0;
 }
 #endif

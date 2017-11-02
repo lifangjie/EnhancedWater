@@ -33,8 +33,8 @@ namespace WaterVersionTest {
         public RenderTexture TextureTargetR, TextureTargetI;
 
         private void Update() {
-            
-            Hkt.SetFloat("Time", Time.realtimeSinceStartup);
+            //H0.Dispatch(_h0Kernal, Size / 8, Size / 8, 1); 
+            Hkt.SetFloat("Time", Time.time);
             Hkt.Dispatch(_hktKernal, Size / 8, Size / 8, 1);
             FftRow.Dispatch(_fftRowKernal, 1, Size, 1);
             FftCol.Dispatch(_fftColKernal, 1, Size, 1);
@@ -60,7 +60,7 @@ namespace WaterVersionTest {
             _h0Tex = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
             _h0Tex.Create();
             _h0Kernal = H0.FindKernel("CSMain");
-            H0.SetFloat("Time", Time.realtimeSinceStartup);
+            //H0.SetFloat("Time", Time.realtimeSinceStartup);
             H0.SetTexture(_h0Kernal, "Result", _h0Tex);
             H0.SetInt("Size", Size);
             H0.SetFloat("Length", Length);

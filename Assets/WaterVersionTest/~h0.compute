@@ -2,14 +2,13 @@
 #pragma kernel CSMain
 
 //#include "UnityCG.cginc"
-//#include "Random.cginc"
+#include "Random.cginc"
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture2D<float4> Result;
 
 #define UNITY_PI            3.14159265359f
-uniform float Time;
 
 uniform int Size;
 uniform float Length;
@@ -37,27 +36,26 @@ float Phillips(float i, float j) {
     return PhillipsSpectrum * exp(-1.0 / (kLength2 * l2)) / kLength4 * kDotW2 * exp(-kLength2 * l2Damping2);
 }
 
-
-float rand_1_05(in float2 uv)
-{
-    float2 noise = (frac(sin(dot(uv ,float2(12.9898,78.233)*2.0)) * 43758.5453));
-    return abs(noise.x + noise.y) * 0.5;
-}
-
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
 	float x1, x2, w;
+    uint rng_state;
+    SetSeed(id.x * 512 + id.y);
     do {
-        x1 = 2 * rand_1_05(id.xy * Time) - 1;
-        x2 = 2 * rand_1_05(id.xy * Time) - 1;
+        x1 = 2 * Rand() - 1;
+        x2 = 2 * Rand() - 1;
         w = x1 * x1 + x2 * x2;
-    }while(w>=1 || w<0.00001);
+    }while(w>=1 || w<0.000001);
     w = sqrt(-2 * log(w) / w);
     float2 gaussianRandomVar = float2(x1 * w, x2 * w);
-    
-    float2 h0mk = gaussianRandomVar * sqrt(Phillips(-float(id.x), -float(id.y)) / 2.0);
-    Result[id.xy] = float4(gaussianRandomVar * sqrt(Phillips(float(id.x), float(id.y)) / 2.0), h0mk.x, -h0mk.y);
+    do {
+        x1 = 2 * Rand() - 1;
+        x2 = 2 * Rand() - 1;
+        w = x1 * x1 + x2 * x2;
+    }while(w>=1 || w<0.000001);
+    w = sqrt(-2 * log(w) / w);
+    float2 gaussianRandomVar2 = float2(x1 * w, x2 * w);
+    float2 h0mk = gaussianRandomVar2 * sqrt(Phillips(-float(id.x), -float(id.y)) / 2.0);
+    Result[uint2(id.x, Size - id.y)] = float4(gaussianRandomVar * sqrt(Phillips(float(id.x), float(id.y)) / 2.0), h0mk.x, -h0mk.y);
 }
-
-
