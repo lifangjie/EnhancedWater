@@ -980,6 +980,7 @@ GameObject:
   - component: {fileID: 811960634}
   - component: {fileID: 811960639}
   - component: {fileID: 811960638}
+  - component: {fileID: 811960640}
   m_Layer: 4
   m_Name: WaterTest
   m_TagString: Untagged
@@ -1068,23 +1069,25 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 287baf1b9d9843c0824e8fac817f3a07, type: 3}
+  m_Script: {fileID: 11500000, guid: e8b3ab118a3dab54487f09c7a05c279e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 512
-  Length: 2000
+  Length: 1000
   PhillipsSpectrum: 0.0005
   H0: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
   Hkt: {fileID: 7200000, guid: dec7fe11925d4fa288ed8c3edd25d756, type: 3}
-  Fft: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
+  FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
+  FftCol: {fileID: 7200000, guid: e9823b0c62ed414786e5b390db4b2457, type: 3}
   Wind: {x: 32, y: 32}
   _h0Tex: {fileID: 0}
   hkt: {fileID: 0}
   dx: {fileID: 0}
   dz: {fileID: 0}
-  ButterflyTex: {fileID: 0}
+  TextureSourceR: {fileID: 0}
+  TextureSourceI: {fileID: 0}
   TextureTargetR: {fileID: 0}
   TextureTargetI: {fileID: 0}
 --- !u!114 &811960639
@@ -1108,6 +1111,27 @@ MonoBehaviour:
   Baking: 0
   Progress: 16
   ComputeShader: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
+--- !u!114 &811960640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 811960633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c58596f5df47c0848b88c7d11c678d83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Size: 512
+  Length: 1000
+  Wind: {x: 32, y: 32}
+  PhillipsSpectrum: 0.0005
+  Cycle: 1
+  LayerCount: 8
+  SampleCount: 32
+  hkt: {fileID: 0}
+  dx: {fileID: 0}
+  dz: {fileID: 0}
 --- !u!1 &828015682
 GameObject:
   m_ObjectHideFlags: 0

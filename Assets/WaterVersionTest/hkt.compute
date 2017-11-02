@@ -1,30 +1,32 @@
 #pragma kernel CSMain
 
-#include "UnityCG.cginc"
+#define UNITY_PI            3.14159265359f
 
 uniform float Length;
 uniform float Gravity;
 uniform int Size;
+uniform float Time;
 Texture2D<float4> h0Tex;
 
 RWTexture2D<float2> Hkt;
 RWTexture2D<float2> Dx;
 RWTexture2D<float2> Dz;
         
-float Dispersion(float2 k) {
-    return sqrt(Gravity * length(k));
+float Dispersion(float kLength) {
+    return sqrt(Gravity * kLength);
 }
 
 float2 ComplexMultiply(float2 a, float2 b) {
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
-float2 HTilde(float2 h0, float2 h0Mkconj, float2 k) {
+float2 HTilde(float2 h0, float2 h0Mkconj, float kLength) {
     
-    float omegat = Dispersion(k) * _Time.y;
+    float omegat = Dispersion(kLength) * Time;
 
-    float cosTemp = cos(omegat);
-    float sinTemp = sin(omegat);
+    float cosTemp;
+    float sinTemp;
+    sincos(omegat, sinTemp, cosTemp);
 
     float2 c0 = float2(cosTemp, sinTemp);
     float2 c1 = float2(cosTemp, -sinTemp);
@@ -36,10 +38,10 @@ float2 HTilde(float2 h0, float2 h0Mkconj, float2 k) {
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     float2 k = float2(UNITY_PI * (2 * float(id.x) - Size) / Length, UNITY_PI * (2 * float(id.y) - Size) / Length);
-    float4 h0 = h0Tex[id.xy];
-    float2 hkt = HTilde(h0.xy, h0.zw, k);
-    
     float kLength = length(k);
+    float4 h0 = h0Tex[id.xy];
+    float2 hkt = HTilde(h0.xy, h0.zw, kLength);
+    
     float2 dx = ComplexMultiply(hkt, float2(0, -k.x / kLength));
     float2 dz = ComplexMultiply(hkt, float2(0, -k.y / kLength));
     

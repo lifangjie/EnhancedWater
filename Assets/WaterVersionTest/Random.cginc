@@ -1,6 +1,12 @@
 #ifndef RANDOM_CG_INCLUDED
 #define RANDOM_CG_INCLUDED
 
+//todo: some problems need to solve
+//example :
+// SetSeed(id.x * 512 + id.y);
+// x1 = 2 * Rand() - 1;
+// x2 = 2 * Rand() - 1;
+
 uint rng_state;
 
 uint rand_lcg()
