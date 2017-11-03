@@ -1057,7 +1057,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 30.5, z: 0}
+  m_LocalPosition: {x: 0, y: -0.2, z: 38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1660952945}
@@ -1075,8 +1075,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 512
-  Length: 1000
-  PhillipsSpectrum: 0.0005
+  Length: 2000
+  PhillipsSpectrum: 1
   H0: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
   Hkt: {fileID: 7200000, guid: dec7fe11925d4fa288ed8c3edd25d756, type: 3}
   FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
@@ -1101,8 +1101,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2f80dff5afa4c24930a326a0577cc72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 512
-  Length: 2000
+  Size: 250
+  Length: 100
   Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 200

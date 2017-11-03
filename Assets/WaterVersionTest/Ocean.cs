@@ -102,8 +102,8 @@ namespace WaterVersionTest {
                         triangleIndex += 6;
                     }
                     // set uv
-                    _uvs[index].x = (index % _width * 1f + 0.5f) / _width;
-                    _uvs[index].y = (Mathf.Floor(index * 1f / _width) * SampleCount + 0.5f) / _height;
+                    _uvs[index].x = (i + 0.5f) / Size;
+                    _uvs[index].y = (j + 0.5f) / Size;
                 }
             }
             _waterMesh.Clear();
@@ -191,8 +191,8 @@ namespace WaterVersionTest {
             ComputeShader.SetFloats("Wind", Wind.x, Wind.y);
             ComputeShader.SetFloat("Gravity", Physics.gravity.magnitude);
             //ComputeBuffer buffer = new ComputeBuffer(Size * Size, 1, );
-                
-            ComputeShader.Dispatch(kernelHandler,Size/8,Size/8,1);
+
+            ComputeShader.Dispatch(kernelHandler, Size / 8, Size / 8, 1);
             //htile0Tex.Apply();
             GetComponent<Renderer>().sharedMaterial.SetTexture("_htile0Tex", htile0Tex);
 //            Texture2D temp = new Texture2D(Size, Size, TextureFormat.RGBAHalf, false);
@@ -316,7 +316,7 @@ namespace WaterVersionTest {
             float kLength4 = kLength2 * kLength2;
 
             float kDotW = Vector2.Dot(k.normalized, Wind.normalized);
-            float kDotW2 = kDotW * kDotW;// * kDotW * kDotW * kDotW * kDotW;
+            float kDotW2 = kDotW * kDotW; // * kDotW * kDotW * kDotW * kDotW;
 
             float wLength = Wind.magnitude;
             float l = wLength * wLength / Physics.gravity.magnitude;
@@ -325,11 +325,12 @@ namespace WaterVersionTest {
             float damping = 0.001f;
             float l2Damping2 = l2 * damping * damping;
 
-            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * l2)) / kLength4 * kDotW2 * Mathf.Exp(-kLength2 * l2Damping2);
+            return PhillipsSpectrum * Mathf.Exp(-1.0f / (kLength2 * l2)) / kLength4 * kDotW2 *
+                   Mathf.Exp(-kLength2 * l2Damping2);
         }
 
         float Dispersion(int i, int j) {
-            float w0 = 2.0f * Mathf.PI / 200;//Cycle;
+            float w0 = 2.0f * Mathf.PI / 200; //Cycle;
             float kx = Mathf.PI * (2 * i - Size) / Length;
             float kz = Mathf.PI * (2 * j - Size) / Length;
             //return Mathf.Floor(Mathf.Sqrt(Physics.gravity.magnitude * Mathf.Sqrt(kx * kx + kz * kz)) / w0) * w0;

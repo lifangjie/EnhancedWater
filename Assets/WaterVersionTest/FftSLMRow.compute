@@ -21,8 +21,8 @@
 // LENGTH: pixel length of row or column
 // BUTTERFLY_LUT: Defined if butterfly lookup texture should be used
 
-#pragma kernel Butterfly TRANSFORM_INVERSE
-//#define TRANSFORM_INVERSE
+#pragma kernel Butterfly
+#define TRANSFORM_INVERSE
 #define BUTTERFLY_COUNT 8
 #define LENGTH 512
 
@@ -96,7 +96,7 @@ void Butterfly(uint3 position : SV_DispatchThreadID)
 	pingPongArray[0][position.x].x = hkt[texturePos].x;
 	pingPongArray[0][position.x].y = dx[texturePos].x;
 	pingPongArray[0][position.x].z = dz[texturePos].x;
-#ifndef TRANSFORM_INVERSE
+#if !defined(TRANSFORM_INVERSE)
 	// don't load values from the imaginary texture when loading the original texture
 	pingPongArray[1][position.x].xy = 0;
 #else

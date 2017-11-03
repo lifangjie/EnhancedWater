@@ -57,5 +57,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     w = sqrt(-2 * log(w) / w);
     float2 gaussianRandomVar2 = float2(x1 * w, x2 * w);
     float2 h0mk = gaussianRandomVar2 * sqrt(Phillips(-float(id.x), -float(id.y)) / 2.0);
-    Result[uint2(id.x, Size - id.y)] = float4(gaussianRandomVar * sqrt(Phillips(float(id.x), float(id.y)) / 2.0), h0mk.x, -h0mk.y);
+    //Result[uint2(id.x, Size - id.y)] = float4(gaussianRandomVar * sqrt(Phillips(float(id.x), float(id.y)) / 2.0), h0mk.x, -h0mk.y);
+    Result[id.xy] = float4(gaussianRandomVar * sqrt(Phillips(float(id.x), float(id.y)) / 2.0), h0mk.x, -h0mk.y);
 }

@@ -21,7 +21,7 @@
 // LENGTH: pixel length of row or column
 // BUTTERFLY_LUT: Defined if butterfly lookup texture should be used
 #pragma kernel Butterfly
-//#define TRANSFORM_INVERSE
+#define TRANSFORM_INVERSE
 #define BUTTERFLY_COUNT 8
 #define LENGTH 512
 #define COLPASS
@@ -103,20 +103,11 @@ void ButterflyPassFinalNoI(int passIndex, int x, int t0, int t1, out float3 resu
 [numthreads( LENGTH, 1, 1 )]
 void Butterfly(uint3 position : SV_DispatchThreadID)
 {
-#ifdef ROWPASS
-	uint2 texturePos = uint2( position.xy );
-#else
 	uint2 texturePos = uint2( position.yx );
-#endif
 
 	// Load entire row or column into scratch array
 	pingPongArray[0][position.x].xyz = TextureSourceR[texturePos];
-#if defined(ROWPASS) && !defined(TRANSFORM_INVERSE)
-	// don't load values from the imaginary texture when loading the original texture
-	pingPongArray[1][position.x].xyz = 0;
-#else
 	pingPongArray[1][position.x].xyz = TextureSourceI[texturePos];
-#endif
 	
 	uint4 textureIndices = uint4(0, 1, 2, 3);
 
@@ -138,5 +129,10 @@ void Butterfly(uint3 position : SV_DispatchThreadID)
 #else
 	ButterflyPass(BUTTERFLY_COUNT - 1, position.x, textureIndices.x, textureIndices.y, TextureTargetR[texturePos], TextureTargetI[texturePos]);
 #endif
+
+	uint2 signs = uint2(1, -1);
+
+	//TextureTargetR[texturePos] = float3(TextureTargetR[texturePos].yyy);// * signs[(position.x + position.y) & 1];
+	//TextureTargetR[texturePos].z = TextureTargetR[texturePos].y;
 
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
 
 namespace WaterVersionTest {
     public class GpuFft : MonoBehaviour {
@@ -26,6 +27,7 @@ namespace WaterVersionTest {
         private void Start() {
             Prepare();
             H0.Dispatch(_h0Kernal, Size / 8, Size / 8, 1);
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", TextureTargetR);
         }
 
         public RenderTexture hkt, dx, dz;
@@ -38,7 +40,7 @@ namespace WaterVersionTest {
             Hkt.Dispatch(_hktKernal, Size / 8, Size / 8, 1);
             FftRow.Dispatch(_fftRowKernal, 1, Size, 1);
             FftCol.Dispatch(_fftColKernal, 1, Size, 1);
-//            RenderTexture.active = _h0Tex;
+//            RenderTexture.active = TextureTargetR;
 //            Texture2D temp = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
 //            temp.ReadPixels(new Rect(0, 0, Size, Size),0 ,0 );
 //            temp.Apply();

@@ -132,20 +132,7 @@ namespace WaterVersionTest {
                         _hTildeDx[index] = _hTilde[index] * new Complex(0, -kx / len);
                         _hTildeDz[index] = _hTilde[index] * new Complex(0, -kz / len);
                     }
-                    if (Time.renderedFrameCount == 6) {
-                        hkt.SetPixel(i, j, new Color(_hTilde[index].Real, _hTilde[index].Imaginary, 0, 0));
-                        dx.SetPixel(i, j, new Color(_hTildeDx[index].Real, _hTildeDx[index].Imaginary, 0, 0));
-                        dz.SetPixel(i, j, new Color(_hTildeDz[index].Real, _hTildeDz[index].Imaginary, 0, 0));
-                    }
                 }
-            }
-
-            if (Time.renderedFrameCount == 6) {
-                hkt.Apply();
-                dx.Apply();
-                dz.Apply();
-                print("frame 100!!");
-                Debug.Break();
             }
 
             for (int i = 0; i < Size; i++) {
