@@ -26,9 +26,8 @@
 #define BUTTERFLY_COUNT 8
 #define LENGTH 512
 
-Texture2D<float2> hkt;//  : register(t0);
-Texture2D<float2> dx;//  : register(t1);
-Texture2D<float2> dz;//  : register(t1);
+Texture2D<float3> TextureSourceR;//  : register(t0);
+Texture2D<float3> TextureSourceI;//  : register(t1);
 #ifdef BUTTERFLY_LUT
 Texture2D<float4> TextureButterfly  : register(t2);
 #endif
@@ -93,16 +92,12 @@ void Butterfly(uint3 position : SV_DispatchThreadID)
 	uint2 texturePos = uint2( position.xy );
 
 	// Load entire row or column into scratch array
-	pingPongArray[0][position.x].x = hkt[texturePos].x;
-	pingPongArray[0][position.x].y = dx[texturePos].x;
-	pingPongArray[0][position.x].z = dz[texturePos].x;
+	pingPongArray[0][position.x].xyz = TextureSourceR[texturePos];
 #if !defined(TRANSFORM_INVERSE)
 	// don't load values from the imaginary texture when loading the original texture
-	pingPongArray[1][position.x].xy = 0;
+	pingPongArray[1][position.x].xyz = 0;
 #else
-	pingPongArray[1][position.x].x = hkt[texturePos].y;
-	pingPongArray[1][position.x].y = dx[texturePos].y;
-	pingPongArray[1][position.x].z = dz[texturePos].y;
+	pingPongArray[1][position.x].xyz = TextureSourceI[texturePos];
 #endif
 	
 	uint4 textureIndices = uint4(0, 1, 2, 3);

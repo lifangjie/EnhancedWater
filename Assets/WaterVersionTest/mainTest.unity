@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 31181805}
-  m_IndirectSpecularColor: {r: 0.17847662, g: 0.21745878, b: 0.27085805, a: 1}
+  m_IndirectSpecularColor: {r: 0.13523136, g: 0.1458362, b: 0.13808185, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -139,7 +139,7 @@ Light:
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
+  m_Intensity: 8
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
@@ -171,13 +171,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 31181804}
-  m_LocalRotation: {x: 0.094576105, y: -0.18497919, z: 0.18102518, w: 0.9612846}
+  m_LocalRotation: {x: 0.046760514, y: 0.31609994, z: 0.11146271, w: 0.9409944}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 14.407001, y: -19.380001, z: 18.857}
+  m_LocalEulerAnglesHint: {x: 1.005, y: 37.259003, z: 13.849001}
 --- !u!1 &202836012
 GameObject:
   m_ObjectHideFlags: 0
@@ -195,7 +195,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &202836013
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -210,7 +210,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 3beb030e88ef1f4458648648c27be132, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -250,7 +250,7 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 202836012}
-  m_Mesh: {fileID: 4300000, guid: 2577ee7fd11cd3641b60170ac174dbe3, type: 3}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &202836016
 Transform:
   m_ObjectHideFlags: 0
@@ -259,7 +259,7 @@ Transform:
   m_GameObject: {fileID: 202836012}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 1, z: 5}
+  m_LocalScale: {x: 10000, y: 1, z: 10000}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
@@ -273,7 +273,6 @@ GameObject:
   m_Component:
   - component: {fileID: 295394390}
   - component: {fileID: 295394389}
-  - component: {fileID: 295394388}
   - component: {fileID: 295394387}
   - component: {fileID: 295394386}
   m_Layer: 0
@@ -291,13 +290,6 @@ AudioListener:
   m_GameObject: {fileID: 295394385}
   m_Enabled: 1
 --- !u!124 &295394387
-Behaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 295394385}
-  m_Enabled: 1
---- !u!92 &295394388
 Behaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -333,7 +325,7 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 0
+  m_HDR: 1
   m_AllowMSAA: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -345,8 +337,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 295394385}
-  m_LocalRotation: {x: -0.14137211, y: 0.29877752, z: -0.044802316, w: -0.9427294}
-  m_LocalPosition: {x: 91.62549, y: 8.742147, z: 56.020714}
+  m_LocalRotation: {x: -0.037105516, y: 0.92490727, z: -0.093606204, w: -0.3666166}
+  m_LocalPosition: {x: 81.75632, y: 7.2883797, z: 109.1184}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -912,7 +904,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!154 &745997370
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -1076,20 +1068,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Size: 512
   Length: 2000
-  PhillipsSpectrum: 1
+  PhillipsSpectrum: 0.1
   H0: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
   Hkt: {fileID: 7200000, guid: dec7fe11925d4fa288ed8c3edd25d756, type: 3}
   FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
   FftCol: {fileID: 7200000, guid: e9823b0c62ed414786e5b390db4b2457, type: 3}
   Wind: {x: 32, y: 32}
   _h0Tex: {fileID: 0}
-  hkt: {fileID: 0}
-  dx: {fileID: 0}
-  dz: {fileID: 0}
-  TextureSourceR: {fileID: 0}
-  TextureSourceI: {fileID: 0}
-  TextureTargetR: {fileID: 0}
-  TextureTargetI: {fileID: 0}
+  HktDtTargetR: {fileID: 0}
+  HktDtTargetI: {fileID: 0}
+  StTargetR: {fileID: 0}
+  StTargetI: {fileID: 0}
+  HktDtTempR: {fileID: 0}
+  HktDtTempI: {fileID: 0}
+  StTempR: {fileID: 0}
+  StTempI: {fileID: 0}
 --- !u!114 &811960639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1102,7 +1095,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 250
-  Length: 100
+  Length: 16
   Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 200
@@ -1122,8 +1115,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c58596f5df47c0848b88c7d11c678d83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 512
-  Length: 1000
+  Size: 64
+  Length: 10
   Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 1

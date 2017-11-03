@@ -8,9 +8,10 @@ uniform int Size;
 uniform float Time;
 Texture2D<float4> h0Tex;
 
-RWTexture2D<float2> Hkt;
-RWTexture2D<float2> Dx;
-RWTexture2D<float2> Dz;
+RWTexture2D<float3> HktDtR;
+RWTexture2D<float3> HktDtI;
+RWTexture2D<float2> StR;
+RWTexture2D<float2> StI;
         
 float Dispersion(float kLength) {
     return sqrt(Gravity * kLength);
@@ -45,10 +46,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 dx = ComplexMultiply(hkt, float2(0, -k.x / kLength));
     float2 dz = ComplexMultiply(hkt, float2(0, -k.y / kLength));
     
+    float2 sx = ComplexMultiply(hkt, float2(0, k.x));
+    float2 sz = ComplexMultiply(hkt, float2(0, k.y));
+
     //temp
-    Hkt[id.xy] = hkt;
-    Dx[id.xy] = dx;
-    Dz[id.xy] = dz;
+    HktDtR[id.xy] = float3(hkt.x, dx.x, dz.x);
+    HktDtI[id.xy] = float3(hkt.y, dx.y, dz.y);
+    StR[id.xy] = float2(sx.x, sz.x);
+    StI[id.xy] = float2(sx.y, sz.y);
     //fft
     
     

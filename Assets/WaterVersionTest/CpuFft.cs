@@ -82,11 +82,11 @@ namespace WaterVersionTest {
                     }
                 }
             }
-//            _waterMesh.Clear();
-//            _waterMesh.vertices = _vertices;
-//            //_waterMesh.uv = _uvs;
-//            _waterMesh.normals = _normals;
-//            _waterMesh.triangles = triangles;
+            _waterMesh.Clear();
+            _waterMesh.vertices = _vertices;
+            //_waterMesh.uv = _uvs;
+            _waterMesh.normals = _normals;
+            _waterMesh.triangles = triangles;
         }
 
         private void Start() {
@@ -105,7 +105,8 @@ namespace WaterVersionTest {
 
         private void Update() {
             EvaluateWavesFft(Time.time);
-            //_waterMesh.vertices = _vertices;
+            _waterMesh.vertices = _vertices;
+            _waterMesh.normals = _normals;
         }
 
         public Texture2D hkt, dx, dz;

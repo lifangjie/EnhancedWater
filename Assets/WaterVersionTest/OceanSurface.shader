@@ -6,6 +6,7 @@
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 		_WaveScale("Wave scale", Range(0.02,0.55)) = 0.118
 		_Tess ("TessDistance", Range(0,10)) = 3
+		_BumpStrength ("BumpStrength", Range(0,10)) = 3
 		WaveSpeed("Wave speed (map1 x,y; map2 x,y)", Vector) = (9,5,-7,-4)
 		[NoScaleOffset] _VerticesTex("Vertices Texture", 2D) = "Black" {}
 	}
@@ -38,6 +39,7 @@
 
 		sampler2D _MainTex;
 		float _Tess;
+		uint _HeightMapSize;
 
 
 		float4 tessDistance (appdata_custom v0, appdata_custom v1, appdata_custom v2) {
@@ -52,8 +54,10 @@
 
 		half _Glossiness;
 		half _Metallic;
+		half _BumpStrength;
 		fixed4 _Color;
 		sampler2D _VerticesTex;
+		sampler2D _NormalsTex;
 
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -61,14 +65,13 @@
 		//UNITY_INSTANCING_CBUFFER_START(Props)
 			// put more per-instance properties here
 		//UNITY_INSTANCING_CBUFFER_END
+
 		float3 generateNormal(float2 positon, sampler2D heightMap, float heightMapSize) {
-			float t = tex2Dlod(heightMap,float4(positon.x,positon.y+1.0/heightMapSize, 0, 0)).y;
-			float b = tex2Dlod(heightMap,float4(positon.x,positon.y-1.0/heightMapSize, 0, 0)).y;
-			float l = tex2Dlod(heightMap,float4(positon.x+1.0/heightMapSize,positon.y, 0, 0)).y;
-			float r = tex2Dlod(heightMap,float4(positon.x-1.0/heightMapSize,positon.y, 0, 0)).y;
-			float3 tanZ = float3(0.0f, t-b, 1.0f);
-			float3 tanX = float3(1.0f, r-l, 0.0f);
-			float3 normal = cross(tanZ, tanX) + float3(0,1,0);
+			float l = tex2Dlod(heightMap,float4(positon.x-1.0/heightMapSize,positon.y, 0, 0)).y;
+			float r = tex2Dlod(heightMap,float4(positon.x+1.0/heightMapSize,positon.y, 0, 0)).y;
+			float d = tex2Dlod(heightMap,float4(positon.x,positon.y-1.0/heightMapSize, 0, 0)).y;
+			float u = tex2Dlod(heightMap,float4(positon.x,positon.y+1.0/heightMapSize, 0, 0)).y;
+			float3 normal = float3(l-r, 2, d-u);
 			return normalize(normal);
 		}
 
@@ -81,8 +84,9 @@
 			//uint sign = (vid/250 + vid%250) & 1;
 			//half2 signs = half2(1, -1);
 			v.vertex.xyz += tex2Dlod(_VerticesTex, uv).xyz;// * signs[sign];
-			//v.normal = tex2Dlod(_NormalsTex, uv).xyz;
-			v.normal = generateNormal(v.texcoord.xy, _VerticesTex, 512);
+			float2 slope = tex2Dlod(_NormalsTex, uv).xy * _BumpStrength;
+			v.normal = normalize(float3(-slope.x, 1, -slope.y));
+			//v.normal = generateNormal(v.texcoord.xy, _VerticesTex, _HeightMapSize);
 		}
 
 		void surf (Input IN, inout SurfaceOutputStandard o) {

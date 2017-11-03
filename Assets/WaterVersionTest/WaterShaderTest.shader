@@ -114,6 +114,14 @@ Shader "Custom/WaterShaderTest" {
 				float3 normal = cross(tanZ, tanX);
 				return normalize(normal);
 			}
+			// float3 generateNormal(float2 positon, sampler2D heightMap, float heightMapSize) {
+			// 	float l = tex2Dlod(heightMap,float4(positon.x-1.0/heightMapSize,positon.y, 0, 0)).y;
+			// 	float r = tex2Dlod(heightMap,float4(positon.x+1.0/heightMapSize,positon.y, 0, 0)).y;
+			// 	float d = tex2Dlod(heightMap,float4(positon.x,positon.y-1.0/heightMapSize, 0, 0)).y;
+			// 	float u = tex2Dlod(heightMap,float4(positon.x,positon.y+1.0/heightMapSize, 0, 0)).y;
+			// 	float3 normal = float3(l-r, 1, d-u);
+			// 	return normalize(normal);
+			// }
 
 			v2f vert(appdata v, uint vid : SV_VertexID)
 			{

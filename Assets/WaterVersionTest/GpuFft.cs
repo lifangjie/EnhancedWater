@@ -27,18 +27,45 @@ namespace WaterVersionTest {
         private void Start() {
             Prepare();
             H0.Dispatch(_h0Kernal, Size / 8, Size / 8, 1);
-            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", TextureTargetR);
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", HktDtTargetR);
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", StTargetR);
+            GetComponent<Renderer>().sharedMaterial.SetInt("_HeightMapSize", Size);
         }
 
-        public RenderTexture hkt, dx, dz;
-        public RenderTexture TextureSourceR, TextureSourceI;
-        public RenderTexture TextureTargetR, TextureTargetI;
+        public RenderTexture HktDtTargetR, HktDtTargetI, StTargetR, StTargetI;
+        public RenderTexture HktDtTempR, HktDtTempI, StTempR, StTempI;
 
         private void Update() {
+            
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_VerticesTex", HktDtTargetR);
+            GetComponent<Renderer>().sharedMaterial.SetTexture("_NormalsTex", StTargetR);
+            GetComponent<Renderer>().sharedMaterial.SetInt("_HeightMapSize", Size);
             //H0.Dispatch(_h0Kernal, Size / 8, Size / 8, 1); 
             Hkt.SetFloat("Time", Time.time);
             Hkt.Dispatch(_hktKernal, Size / 8, Size / 8, 1);
+            
+            FftRow.SetTexture(_fftRowKernal, "TextureSourceR", HktDtTargetR);
+            FftRow.SetTexture(_fftRowKernal, "TextureSourceI", HktDtTargetI);
+            FftRow.SetTexture(_fftRowKernal, "TextureTargetR", HktDtTempR);
+            FftRow.SetTexture(_fftRowKernal, "TextureTargetI", HktDtTempI);
             FftRow.Dispatch(_fftRowKernal, 1, Size, 1);
+            
+            FftCol.SetTexture(_fftColKernal, "TextureSourceR", HktDtTempR);
+            FftCol.SetTexture(_fftColKernal, "TextureSourceI", HktDtTempI);
+            FftCol.SetTexture(_fftColKernal, "TextureTargetR", HktDtTargetR);
+            FftCol.SetTexture(_fftColKernal, "TextureTargetI", HktDtTargetI);
+            FftCol.Dispatch(_fftColKernal, 1, Size, 1);
+            
+            FftRow.SetTexture(_fftRowKernal, "TextureSourceR", StTargetR);
+            FftRow.SetTexture(_fftRowKernal, "TextureSourceI", StTargetI);
+            FftRow.SetTexture(_fftRowKernal, "TextureTargetR", StTempR);
+            FftRow.SetTexture(_fftRowKernal, "TextureTargetI", StTempI);
+            FftRow.Dispatch(_fftRowKernal, 1, Size, 1);
+            
+            FftCol.SetTexture(_fftColKernal, "TextureSourceR", StTempR);
+            FftCol.SetTexture(_fftColKernal, "TextureSourceI", StTempI);
+            FftCol.SetTexture(_fftColKernal, "TextureTargetR", StTargetR);
+            FftCol.SetTexture(_fftColKernal, "TextureTargetI", StTargetI);
             FftCol.Dispatch(_fftColKernal, 1, Size, 1);
 //            RenderTexture.active = TextureTargetR;
 //            Texture2D temp = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
@@ -77,43 +104,32 @@ namespace WaterVersionTest {
             Hkt.SetFloat("Length", Length);
             Hkt.SetFloat("Gravity", Physics.gravity.magnitude);
 
-
-            // temp
-            hkt = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
-            hkt.Create();
-            dx = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
-            dx.Create();
-            dz = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
-            dz.Create();
-            Hkt.SetTexture(_hktKernal, "Hkt", hkt);
-            Hkt.SetTexture(_hktKernal, "Dx", dx);
-            Hkt.SetTexture(_hktKernal, "Dz", dz);
+            HktDtTempR = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
+            HktDtTempR.Create();
+            HktDtTempI= new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
+            HktDtTempI.Create();
+            StTempR = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
+            StTempR.Create();
+            StTempI= new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
+            StTempI.Create();
             
-            TextureSourceR = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
-            TextureSourceR.Create();
-            TextureSourceI = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
-            TextureSourceI.Create();
-            TextureTargetR = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
-            TextureTargetR.Create();
-            TextureTargetI = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
-            TextureTargetI.Create();
-            //ButterflyTex = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBHalf) {enableRandomWrite = true};
-            //ButterflyTex.Create();
-
+            HktDtTargetR = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
+            HktDtTargetR.Create();
+            HktDtTargetI= new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {enableRandomWrite = true};
+            HktDtTargetI.Create();
+            StTargetR = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
+            StTargetR.Create();
+            StTargetI= new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {enableRandomWrite = true};
+            StTargetI.Create();
+            
+            Hkt.SetTexture(_hktKernal, "HktDtR", HktDtTargetR);
+            Hkt.SetTexture(_hktKernal, "HktDtI", HktDtTargetI);
+            Hkt.SetTexture(_hktKernal, "StR", StTargetR);
+            Hkt.SetTexture(_hktKernal, "StI", StTargetI);
 
             _fftRowKernal= FftRow.FindKernel("Butterfly");
-            FftRow.SetTexture(_fftRowKernal, "hkt", hkt);
-            FftRow.SetTexture(_fftRowKernal, "dx", dx);
-            FftRow.SetTexture(_fftRowKernal, "dz", dz);
-            FftRow.SetTexture(_fftRowKernal, "TextureTargetR", TextureSourceR);
-            FftRow.SetTexture(_fftRowKernal, "TextureTargetI", TextureSourceI);
 
             _fftColKernal = FftCol.FindKernel("Butterfly");
-            FftCol.SetTexture(_fftColKernal, "TextureSourceR", TextureSourceR);
-            FftCol.SetTexture(_fftColKernal, "TextureSourceI", TextureSourceI);
-            FftCol.SetTexture(_fftColKernal, "TextureTargetR", TextureTargetR);
-            FftCol.SetTexture(_fftColKernal, "TextureTargetI", TextureTargetI);
-            //Fft.SetTexture(_fftKernal, "ButterflyTex", ButterflyTex);
         }
     }
 }
