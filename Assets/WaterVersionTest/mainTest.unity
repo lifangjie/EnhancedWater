@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 31181805}
-  m_IndirectSpecularColor: {r: 0.13523136, g: 0.1458362, b: 0.13808185, a: 1}
+  m_IndirectSpecularColor: {r: 0.16915575, g: 0.20074499, b: 0.234668, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -139,7 +139,7 @@ Light:
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 8
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
@@ -171,13 +171,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 31181804}
-  m_LocalRotation: {x: 0.046760514, y: 0.31609994, z: 0.11146271, w: 0.9409944}
+  m_LocalRotation: {x: 0.101560704, y: 0.29460648, z: 0.07186538, w: 0.947485}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 1.005, y: 37.259003, z: 13.849001}
+  m_LocalEulerAnglesHint: {x: 8.633, y: 35.411003, z: 11.436001}
 --- !u!1 &202836012
 GameObject:
   m_ObjectHideFlags: 0
@@ -195,7 +195,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &202836013
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -258,7 +258,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 202836012}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 10000, y: 1, z: 10000}
   m_Children: []
   m_Father: {fileID: 0}
@@ -275,6 +275,7 @@ GameObject:
   - component: {fileID: 295394389}
   - component: {fileID: 295394387}
   - component: {fileID: 295394386}
+  - component: {fileID: 295394388}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -296,6 +297,18 @@ Behaviour:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 295394385}
   m_Enabled: 1
+--- !u!114 &295394388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 295394385}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff26db721962cdf4a8edcdfa9a767d2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: aa10a9fc55d3e084395f0268c7fbf6a9, type: 2}
 --- !u!20 &295394389
 Camera:
   m_ObjectHideFlags: 0
@@ -325,7 +338,7 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
+  m_HDR: 0
   m_AllowMSAA: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -337,8 +350,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 295394385}
-  m_LocalRotation: {x: -0.037105516, y: 0.92490727, z: -0.093606204, w: -0.3666166}
-  m_LocalPosition: {x: 81.75632, y: 7.2883797, z: 109.1184}
+  m_LocalRotation: {x: 0.00183741, y: 0.89673716, z: 0.0037006587, w: -0.44254422}
+  m_LocalPosition: {x: 107.278915, y: 7.375354, z: 107.535095}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -414,6 +427,9 @@ MonoBehaviour:
   TextureSize: 256
   ClipPlaneOffset: 0.07
   ReflectLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  RefractLayers:
     serializedVersion: 2
     m_Bits: 4294967295
 --- !u!23 &329852819
@@ -615,6 +631,9 @@ MonoBehaviour:
   ReflectLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  RefractLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!23 &446146726
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -728,6 +747,9 @@ MonoBehaviour:
   TextureSize: 256
   ClipPlaneOffset: 0.07
   ReflectLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  RefractLayers:
     serializedVersion: 2
     m_Bits: 4294967295
 --- !u!23 &559575403
@@ -845,6 +867,9 @@ MonoBehaviour:
   ReflectLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  RefractLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!23 &600644940
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -904,7 +929,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!154 &745997370
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -994,9 +1019,12 @@ MonoBehaviour:
   CurrentGestner: 0
   CurrentWaterMode: 2
   DisablePixelLights: 1
-  TextureSize: 256
+  TextureSize: 512
   ClipPlaneOffset: 0.07
   ReflectLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  RefractLayers:
     serializedVersion: 2
     m_Bits: 4294967295
 --- !u!23 &811960635
@@ -1049,7 +1077,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.2, z: 38}
+  m_LocalPosition: {x: 80.3, y: 3.4, z: 84.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1660952945}
@@ -1067,8 +1095,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 512
-  Length: 2000
-  PhillipsSpectrum: 0.1
+  Length: 1000
+  PhillipsSpectrum: 2
   H0: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
   Hkt: {fileID: 7200000, guid: dec7fe11925d4fa288ed8c3edd25d756, type: 3}
   FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
@@ -1095,7 +1123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 250
-  Length: 16
+  Length: 128
   Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 200
@@ -1115,13 +1143,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c58596f5df47c0848b88c7d11c678d83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 64
-  Length: 10
+  Size: 128
+  Length: 100
   Wind: {x: 32, y: 32}
-  PhillipsSpectrum: 0.0005
-  Cycle: 1
-  LayerCount: 8
-  SampleCount: 32
+  PhillipsSpectrum: 0.000005
   hkt: {fileID: 0}
   dx: {fileID: 0}
   dz: {fileID: 0}
@@ -1182,6 +1207,9 @@ MonoBehaviour:
   TextureSize: 256
   ClipPlaneOffset: 0.07
   ReflectLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  RefractLayers:
     serializedVersion: 2
     m_Bits: 4294967295
 --- !u!23 &828015685
@@ -1312,6 +1340,9 @@ MonoBehaviour:
   ReflectLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  RefractLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!23 &892088017
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1414,6 +1445,9 @@ MonoBehaviour:
   ReflectLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  RefractLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!23 &994712798
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1492,7 +1526,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1660952944}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 75.4, y: 5.4, z: 63.9}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 811960637}
@@ -1539,7 +1573,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 57c89a6fd6c80644eb9ecd82af4e0ac0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1585,13 +1619,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1840944308}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 85.23, y: 8.23, z: 39.2}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.3270694, y: -0.43850362, z: 0.1752114, w: 0.8185604}
+  m_LocalPosition: {x: 84.62, y: 3.95, z: 88.18}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 43.56, y: -56.356003, z: 0}
 --- !u!1 &2114985955
 GameObject:
   m_ObjectHideFlags: 0
@@ -1662,6 +1696,9 @@ MonoBehaviour:
   TextureSize: 256
   ClipPlaneOffset: 0.07
   ReflectLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  RefractLayers:
     serializedVersion: 2
     m_Bits: 4294967295
 --- !u!23 &2114985959

@@ -102,8 +102,10 @@ namespace WaterVersionTest {
                         triangleIndex += 6;
                     }
                     // set uv
-                    _uvs[index].x = (i + 0.5f) / Size;
-                    _uvs[index].y = (j + 0.5f) / Size;
+                    //_uvs[index].x = (i + 0.5f) / Size;
+                    _uvs[index].x = (i + 0.5f - Size/2f) * Length / Size;
+                    _uvs[index].y = (j + 0.5f - Size/2f) * Length / Size;
+                    //_uvs[index].y = (j + 0.5f) / Size;
                 }
             }
             _waterMesh.Clear();

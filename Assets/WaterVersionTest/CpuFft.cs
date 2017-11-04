@@ -27,17 +27,8 @@ namespace WaterVersionTest {
 
         private Complex[] _hTildeDz;
 
-        public float Cycle = 1f;
-        public int LayerCount = 8;
-        private int _width, _height;
-
-        public int SampleCount = 32;
-
-
         private void UpdateMesh() {
             _sizePlus1 = Size + 1;
-            _width = Size * Size / LayerCount;
-            _height = SampleCount * LayerCount;
             _waterMesh = GetComponent<MeshFilter>().sharedMesh;
             if (_waterMesh == null) {
                 _waterMesh = new Mesh();

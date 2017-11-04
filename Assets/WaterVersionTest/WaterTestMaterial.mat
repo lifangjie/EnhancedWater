@@ -84,13 +84,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
-    - _BumpStrength: 10
+    - _BumpStrength: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GerstnerIntensity: 1
     - _GlossMapScale: 1
-    - _Glossiness: 0.9
+    - _Glossiness: 1
     - _GlossyReflections: 1
     - _Metallic: 1
     - _Mode: 0
@@ -109,7 +109,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - WaveSpeed: {r: 19, g: 9, b: -16, a: -7}
-    - _Color: {r: 0.28384516, g: 0.34275442, b: 0.5147059, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _Emission: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GAmplitude: {r: 0.06, g: 0.07, b: 0.05, a: 0.05}
