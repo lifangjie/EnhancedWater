@@ -29,11 +29,11 @@ MonoBehaviour:
     m_Settings:
       excludeSkybox: 1
   antialiasing:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
       method: 0
       fxaaSettings:
-        preset: 2
+        preset: 4
       taaSettings:
         jitterSpread: 0.75
         sharpen: 0.3
@@ -59,7 +59,7 @@ MonoBehaviour:
         iterationCount: 256
         stepSize: 3
         widthModifier: 0.5
-        reflectionBlur: 1
+        reflectionBlur: 0.1
         reflectBackfaces: 0
       intensity:
         reflectionMultiplier: 1

@@ -56,16 +56,18 @@
 			half oneMinusReflectivity;
 			//s.Albedo = EnergyConservationBetweenDiffuseAndSpecular (s.Albedo, s.Specular, /*out*/ oneMinusReflectivity);
 
-			half fresnel = pow(1 - saturate(dot(viewDir, float3(0,1,0))), 4);
+			half fresnel = pow(1 - saturate(dot(viewDir, s.Normal)), 4);
 			UnityStandardData data;
-			data.diffuseColor   = 0.1;
-			data.occlusion  = fresnel * s.Occlusion;
-			data.specularColor  = 1;
+			data.diffuseColor   = 0.05;
+			data.occlusion = s.Occlusion;
+			//data.occlusion = 1;
+			data.specularColor  = fresnel * 1;
 			data.smoothness = 1;
 			data.normalWorld= s.Normal;
 
 			UnityStandardDataToGbuffer(data, outGBuffer0, outGBuffer1, outGBuffer2);
 
+			s.Albedo = lerp(s.Albedo, half3(0.005,0.008,0.007), s.Occlusion);
 			return half4(s.Albedo, 1);
 			//return half4(0.002,0.01,0.012, 1);
 		}
@@ -137,7 +139,7 @@
 			//half2 signs = half2(1, -1);
 			v.vertex.xyz += tex2Dlod(_VerticesTex, uv).xyz;// * signs[sign];
 			float2 slope = tex2Dlod(_NormalsTex, uv).xy * _BumpStrength;
-			v.normal = normalize(float3(-slope.x, 0.5f, -slope.y));
+			v.normal = normalize(float3(-slope.x, 1, -slope.y));
 			//v.normal = generateNormal(v.texcoord.xy, _VerticesTex, _HeightMapSize);
 			UNITY_INITIALIZE_OUTPUT(Input,o);
 			o.grabScreenPos = ComputeGrabScreenPos(UnityObjectToClipPos(v.vertex));
