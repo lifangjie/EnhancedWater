@@ -171,8 +171,8 @@
 				// combine two scrolling bumpmaps into one
 				half3 bump1 = UnpackNormal(tex2D(_BumpMap, i.bumpuv.xy)).rgb;
 				half3 bump2 = UnpackNormal(tex2D(_BumpMap, i.bumpuv.wz)).rgb;
-				half3 bump = half3(((bump1 + bump2) * 0.5).xy, 0) + i.worldNormal;
-				bump = normalize(bump);
+				half3 bump = (bump1 + bump2).xzy * 0.5;
+				bump = normalize(half3(bump.x, 0, bump.z) + i.worldNormal);
 
 				#if HAS_REFLECTION
 				half atten = LIGHT_ATTENUATION(i);

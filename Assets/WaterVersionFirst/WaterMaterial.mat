@@ -92,7 +92,7 @@ Material:
     - _Tess: 4
     - _Transparency: 7.5
     - _UVSec: 0
-    - _WaveScale: 0.118
+    - _WaveScale: 0.02
     - _ZWrite: 1
     m_Colors:
     - WaveSpeed: {r: 19, g: 9, b: -16, a: -7}
