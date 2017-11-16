@@ -1,0 +1,43 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel UpdateSpectrumCS
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+Texture2D<float3> H0PlusOmega;
+RWTexture2D<float2> Hkt;
+RWTexture2D<float2> Dx;
+RWTexture2D<float2> Dy;
+
+uniform uint Size;
+uniform float Time;
+
+[numthreads(16,16,1)]
+void UpdateSpectrumCS (uint3 id : SV_DispatchThreadID)
+{
+	// H(0) -> H(t)
+	float3 h0_k  = H0PlusOmega[id.xy];
+	float2 h0_mk = H0PlusOmega[uint2(Size - id.x, Size - id.y)].rg;
+	float sin_v, cos_v;
+	sincos(h0_k.b * Time, sin_v, cos_v);
+
+	float2 ht;
+	ht.x = (h0_k.x + h0_mk.x) * cos_v - (h0_k.y + h0_mk.y) * sin_v;
+	ht.y = (h0_k.x - h0_mk.x) * sin_v + (h0_k.y - h0_mk.y) * cos_v;
+
+	// H(t) -> Dx(t), Dy(t)
+	float kx = id.x - Size * 0.5f;
+	float ky = id.y - Size * 0.5f;
+	float sqr_k = kx * kx + ky * ky;
+	float rsqr_k = 0;
+	if (sqr_k > 1e-12f)
+		rsqr_k = 1 / sqrt(sqr_k);
+	//float rsqr_k = 1 / sqrtf(kx * kx + ky * ky);
+	kx *= rsqr_k;
+	ky *= rsqr_k;
+	float2 dt_x = float2(ht.y * kx, -ht.x * kx);
+	float2 dt_y = float2(ht.y * ky, -ht.x * ky);
+
+	Hkt[id.xy] = ht;
+	Dx[id.xy] = dt_x;
+	Dy[id.xy] = dt_y;
+}

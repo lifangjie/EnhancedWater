@@ -36,7 +36,7 @@ float Phillips(float i, float j) {
     return PhillipsSpectrum * exp(-1.0 / (kLength2 * l2)) / kLength4 * kDotW2 * exp(-kLength2 * l2Damping2);
 }
 
-[numthreads(8,8,1)]
+[numthreads(16,16,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
 	float x1, x2, w;

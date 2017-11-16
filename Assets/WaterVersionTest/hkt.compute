@@ -35,7 +35,7 @@ float2 HTilde(float2 h0, float2 h0Mkconj, float kLength) {
     return ComplexMultiply(h0, c0) + ComplexMultiply(h0Mkconj, c1);
 }
 
-[numthreads(8,8,1)]
+[numthreads(16,16,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     float2 k = float2(UNITY_PI * (2 * float(id.x) - Size) / Length, UNITY_PI * (2 * float(id.y) - Size) / Length);
