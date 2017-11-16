@@ -3,13 +3,37 @@
 namespace WaterVersionTest {
     public class GpuFftTest : MonoBehaviour {
         public ComputeShader HktTest;
+        private int _hktKernel;
         public Texture2D H0PlusOmega;
+        public RenderTexture Hkt, Dx, Dy;
+
         private void Start() {
-            H0PlusOmega = new Texture2D(512, 512, TextureFormat.RGFloat, false);
-            Color[] h0PlusOmega = new Color[512 * 512];
+            H0PlusOmega = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
+            Color[] h0PlusOmega = new Color[Size * Size];
             InitHeightMap(ref h0PlusOmega);
             H0PlusOmega.SetPixels(h0PlusOmega);
             H0PlusOmega.Apply();
+
+            Hkt = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
+                enableRandomWrite = true
+            };
+            Dx = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
+                enableRandomWrite = true
+            };
+            Dy = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
+                enableRandomWrite = true
+            };
+            _hktKernel = HktTest.FindKernel("UpdateSpectrumCS");
+            HktTest.SetInt("Size", Size);
+            HktTest.SetTexture(_hktKernel, "H0PlusOmega", H0PlusOmega);
+            HktTest.SetTexture(_hktKernel, "Hkt", Hkt);
+            HktTest.SetTexture(_hktKernel, "Dx", Dx);
+            HktTest.SetTexture(_hktKernel, "Dy", Dy);
+        }
+
+        private void Update() {
+            HktTest.SetFloat("Time", Time.time);
+            HktTest.Dispatch(_hktKernel, Size / 16, Size / 16, 1);
         }
 
 
@@ -52,7 +76,7 @@ namespace WaterVersionTest {
 
                     float phil = 0;
                     if (Mathf.Abs(k.x) > 1e-6 || Mathf.Abs(k.y) > 1e-6) {
-                        phil = Mathf.Sqrt(Phillips(k, windDir, WindSpeed, WaveAmplitude, WindDependency));
+                        phil = Mathf.Sqrt(Phillips(k, windDir, WindSpeed, WaveAmplitude * 1e-7f, WindDependency));
                     }
 
                     //out_h0[i * (Size + 4) + j].x = phil * Gauss() * HALF_SQRT_2;
