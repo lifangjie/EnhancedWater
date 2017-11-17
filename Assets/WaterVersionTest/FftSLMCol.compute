@@ -21,7 +21,7 @@
 // LENGTH: pixel length of row or column
 // BUTTERFLY_LUT: Defined if butterfly lookup texture should be used
 #pragma kernel Butterfly
-#define TRANSFORM_INVERSE
+//#define TRANSFORM_INVERSE
 #define BUTTERFLY_COUNT 8
 #define LENGTH 512
 #define COLPASS

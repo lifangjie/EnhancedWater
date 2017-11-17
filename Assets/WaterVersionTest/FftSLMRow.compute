@@ -22,7 +22,7 @@
 // BUTTERFLY_LUT: Defined if butterfly lookup texture should be used
 
 #pragma kernel Butterfly
-#define TRANSFORM_INVERSE
+//#define TRANSFORM_INVERSE
 #define BUTTERFLY_COUNT 8
 #define LENGTH 512
 
@@ -93,17 +93,17 @@ void Butterfly(uint3 position : SV_DispatchThreadID)
 
 	// Load entire row or column into scratch array
 	pingPongArray[0][position.x].xyz = TextureSourceR[texturePos];
-#if !defined(TRANSFORM_INVERSE)
+//#if !defined(TRANSFORM_INVERSE)
 	// don't load values from the imaginary texture when loading the original texture
-	pingPongArray[1][position.x].xyz = 0;
-#else
+//	pingPongArray[1][position.x].xyz = 0;
+//#else
 	pingPongArray[1][position.x].xyz = TextureSourceI[texturePos];
-#endif
+//#endif
 	
 	uint4 textureIndices = uint4(0, 1, 2, 3);
 
 	
-	for (int i = 0; i < BUTTERFLY_COUNT-1; i++)
+	for (uint i = 0; i < BUTTERFLY_COUNT-1; i++)
 	{
 		GroupMemoryBarrierWithGroupSync();
 		ButterflyPass( i, position.x, textureIndices.x, textureIndices.y, pingPongArray[textureIndices.z][position.x], pingPongArray[textureIndices.w][position.x]);

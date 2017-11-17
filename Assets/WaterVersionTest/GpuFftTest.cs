@@ -4,8 +4,18 @@ namespace WaterVersionTest {
     public class GpuFftTest : MonoBehaviour {
         public ComputeShader HktTest;
         private int _hktKernel;
+
         public Texture2D H0PlusOmega;
-        public RenderTexture Hkt, Dx, Dy;
+
+        //public RenderTexture Hkt, Dx, Dy;
+        private RenderTexture _hktReal, _hktImagination;
+
+        private RenderTexture _tempReal, _tempImagination;
+
+        public RenderTexture OutputReal, OutputImagination;
+
+        public ComputeShader FftRow, FftCol;
+        private int _fftRowKernel, _fftColKernel;
 
         private void Start() {
             H0PlusOmega = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
@@ -14,26 +24,73 @@ namespace WaterVersionTest {
             H0PlusOmega.SetPixels(h0PlusOmega);
             H0PlusOmega.Apply();
 
-            Hkt = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
-                enableRandomWrite = true
+//            Hkt = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
+//                enableRandomWrite = true
+//            };
+//            Dx = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
+//                enableRandomWrite = true
+//            };
+//            Dy = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
+//                enableRandomWrite = true
+//            };
+            _hktReal = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {
+                enableRandomWrite = true,
+                autoGenerateMips = false
             };
-            Dx = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
-                enableRandomWrite = true
+            _hktReal.Create();
+            _hktImagination = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {
+                enableRandomWrite = true,
+                autoGenerateMips = false
             };
-            Dy = new RenderTexture(Size, Size, 0, RenderTextureFormat.RGFloat) {
-                enableRandomWrite = true
+            _hktImagination.Create();
+            _tempReal = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {
+                enableRandomWrite = true,
+                autoGenerateMips = false
             };
+            _tempReal.Create();
+            _tempImagination = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {
+                enableRandomWrite = true,
+                autoGenerateMips = false
+            };
+            _tempImagination.Create();
+            OutputReal = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {
+                enableRandomWrite = true,
+                autoGenerateMips = false
+            };
+            OutputReal.Create();
+            OutputImagination = new RenderTexture(Size, Size, 0, RenderTextureFormat.ARGBFloat) {
+                enableRandomWrite = true,
+                autoGenerateMips = false
+            };
+            OutputImagination.Create();
             _hktKernel = HktTest.FindKernel("UpdateSpectrumCS");
             HktTest.SetInt("Size", Size);
             HktTest.SetTexture(_hktKernel, "H0PlusOmega", H0PlusOmega);
-            HktTest.SetTexture(_hktKernel, "Hkt", Hkt);
-            HktTest.SetTexture(_hktKernel, "Dx", Dx);
-            HktTest.SetTexture(_hktKernel, "Dy", Dy);
+//            HktTest.SetTexture(_hktKernel, "Hkt", Hkt);
+//            HktTest.SetTexture(_hktKernel, "Dx", Dx);
+//            HktTest.SetTexture(_hktKernel, "Dy", Dy);
+            HktTest.SetTexture(_hktKernel, "HktReal", _hktReal);
+            HktTest.SetTexture(_hktKernel, "HktImagination", _hktImagination);
+
+            _fftRowKernel = FftRow.FindKernel("Butterfly");
+            _fftColKernel = FftCol.FindKernel("Butterfly");
+
+            FftRow.SetTexture(_fftRowKernel, "TextureSourceR", _hktReal);
+            FftRow.SetTexture(_fftRowKernel, "TextureSourceI", _hktImagination);
+            FftRow.SetTexture(_fftRowKernel, "TextureTargetR", _tempReal);
+            FftRow.SetTexture(_fftRowKernel, "TextureTargetI", _tempImagination);
+
+            FftCol.SetTexture(_fftColKernel, "TextureSourceR", _tempReal);
+            FftCol.SetTexture(_fftColKernel, "TextureSourceI", _tempImagination);
+            FftCol.SetTexture(_fftColKernel, "TextureTargetR", OutputReal);
+            FftCol.SetTexture(_fftColKernel, "TextureTargetI", OutputImagination);
         }
 
         private void Update() {
             HktTest.SetFloat("Time", Time.time);
             HktTest.Dispatch(_hktKernel, Size / 16, Size / 16, 1);
+            FftRow.Dispatch(_fftRowKernel, 1, Size, 1);
+            FftCol.Dispatch(_fftColKernel, 1, Size, 1);
         }
 
 

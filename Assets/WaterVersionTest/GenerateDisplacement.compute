@@ -1,0 +1,22 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Input;
+RWTexture2D<float4> Result;
+RWTexture2D<float4> Result;
+
+uniform float ChoppyScale;
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	// TODO: insert actual code here!
+
+	int sign_correction = ((id.x + id.y) & 1) ? -1 : 1;
+
+	float dx = Input[id].y * sign_correction * ChoppyScale;
+	float dy = Input[id].z * sign_correction * ChoppyScale;
+	float dz = Input[id].x * sign_correction
+}

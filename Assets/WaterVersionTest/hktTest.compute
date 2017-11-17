@@ -4,9 +4,11 @@
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 Texture2D<float3> H0PlusOmega;
-RWTexture2D<float2> Hkt;
-RWTexture2D<float2> Dx;
-RWTexture2D<float2> Dy;
+//RWTexture2D<float2> Hkt;
+//RWTexture2D<float2> Dx;
+//RWTexture2D<float2> Dy;
+RWTexture2D<float3> HktReal;
+RWTexture2D<float3> HktImagination;
 
 uniform uint Size;
 uniform float Time;
@@ -37,7 +39,11 @@ void UpdateSpectrumCS (uint3 id : SV_DispatchThreadID)
 	float2 dt_x = float2(ht.y * kx, -ht.x * kx);
 	float2 dt_y = float2(ht.y * ky, -ht.x * ky);
 
-	Hkt[id.xy] = ht;
-	Dx[id.xy] = dt_x;
-	Dy[id.xy] = dt_y;
+	float3 real = float3(ht.x, dt_x.x, dt_y.x);
+	float3 imagination = float3(ht.y, dt_x.y, dt_y.y);
+	//Hkt[id.xy] = ht;
+	//Dx[id.xy] = dt_x;
+	//Dy[id.xy] = dt_y;
+	HktReal[id.xy] = real;
+	HktImagination[id.xy] = imagination;
 }

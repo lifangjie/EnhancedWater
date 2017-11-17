@@ -1164,6 +1164,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HktTest: {fileID: 7200000, guid: 36e35dbc2daa21f4ba1ea97d8f883b23, type: 3}
   H0PlusOmega: {fileID: 0}
+  OutputReal: {fileID: 0}
+  OutputImagination: {fileID: 0}
+  FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
+  FftCol: {fileID: 7200000, guid: e9823b0c62ed414786e5b390db4b2457, type: 3}
   Size: 512
   Length: 2000
   TimeScale: 0.8
