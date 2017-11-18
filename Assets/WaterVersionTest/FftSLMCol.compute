@@ -22,7 +22,7 @@
 // BUTTERFLY_LUT: Defined if butterfly lookup texture should be used
 #pragma kernel Butterfly
 //#define TRANSFORM_INVERSE
-#define BUTTERFLY_COUNT 8
+#define BUTTERFLY_COUNT 9
 #define LENGTH 512
 #define COLPASS
 
@@ -130,7 +130,7 @@ void Butterfly(uint3 position : SV_DispatchThreadID)
 	ButterflyPass(BUTTERFLY_COUNT - 1, position.x, textureIndices.x, textureIndices.y, TextureTargetR[texturePos], TextureTargetI[texturePos]);
 #endif
 
-	uint2 signs = uint2(1, -1);
+	//uint2 signs = uint2(1, -1);
 
 	//TextureTargetR[texturePos] = float3(TextureTargetR[texturePos].yyy);// * signs[(position.x + position.y) & 1];
 	//TextureTargetR[texturePos].z = TextureTargetR[texturePos].y;

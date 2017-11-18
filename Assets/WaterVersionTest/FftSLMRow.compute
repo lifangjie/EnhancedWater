@@ -23,7 +23,7 @@
 
 #pragma kernel Butterfly
 //#define TRANSFORM_INVERSE
-#define BUTTERFLY_COUNT 8
+#define BUTTERFLY_COUNT 9
 #define LENGTH 512
 
 Texture2D<float3> TextureSourceR;//  : register(t0);

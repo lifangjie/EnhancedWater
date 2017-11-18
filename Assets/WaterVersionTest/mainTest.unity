@@ -1096,8 +1096,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 512
-  Length: 1000
-  PhillipsSpectrum: 2
+  Length: 2000
+  PhillipsSpectrum: 0.000000035
   H0: {fileID: 7200000, guid: b397bbeeb136b324081357707a055e3f, type: 3}
   Hkt: {fileID: 7200000, guid: dec7fe11925d4fa288ed8c3edd25d756, type: 3}
   FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
@@ -1139,15 +1139,15 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c58596f5df47c0848b88c7d11c678d83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 128
-  Length: 100
-  Wind: {x: 32, y: 32}
-  PhillipsSpectrum: 0.000005
+  Size: 512
+  Length: 2000
+  Wind: {x: 480, y: 360}
+  PhillipsSpectrum: 0.000000035
   hkt: {fileID: 0}
   dx: {fileID: 0}
   dz: {fileID: 0}
@@ -1157,17 +1157,20 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c11dbfff584f5085f7984b9216f6a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   HktTest: {fileID: 7200000, guid: 36e35dbc2daa21f4ba1ea97d8f883b23, type: 3}
-  H0PlusOmega: {fileID: 0}
-  OutputReal: {fileID: 0}
-  OutputImagination: {fileID: 0}
   FftRow: {fileID: 7200000, guid: d4fbb0f24aa44571a021369726f4f57b, type: 3}
   FftCol: {fileID: 7200000, guid: e9823b0c62ed414786e5b390db4b2457, type: 3}
+  GenerateDisplacement: {fileID: 7200000, guid: f583007bcf5923c4f943177114adbad8,
+    type: 3}
+  _tempReal: {fileID: 0}
+  _tempImagination: {fileID: 0}
+  OutputReal: {fileID: 0}
+  OutputImagination: {fileID: 0}
   Size: 512
   Length: 2000
   TimeScale: 0.8

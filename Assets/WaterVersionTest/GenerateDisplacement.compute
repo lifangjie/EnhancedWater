@@ -1,22 +1,54 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
+#pragma kernel CSMain2
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-RWTexture2D<float4> Input;
-RWTexture2D<float4> Result;
+Texture2D<float4> Input;
+SamplerState samplerInput;
 RWTexture2D<float4> Result;
 
 uniform float ChoppyScale;
+uniform float GridLen;
 
 [numthreads(16,16,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-	// TODO: insert actual code here!
-
 	int sign_correction = ((id.x + id.y) & 1) ? -1 : 1;
 
-	float dx = Input[id].y * sign_correction * ChoppyScale;
-	float dy = Input[id].z * sign_correction * ChoppyScale;
-	float dz = Input[id].x * sign_correction
+	float dx = Input[id.xy].y * sign_correction * ChoppyScale;
+	float dy = Input[id.xy].z * sign_correction * ChoppyScale;
+	float dz = Input[id.xy].x * sign_correction;
+	Result[id.xy] = float4(dx, dy, dz, 1);
+}
+
+[numthreads(16,16,1)]
+void CSMain2 (uint3 id : SV_DispatchThreadID)
+{
+	// Sample neighbour texels
+	float2 tc_left  = float2((id.x - 1.0)/512.0, id.y/512.0);
+	float2 tc_right = float2((id.x + 1.0)/512.0, id.y/512.0);
+	float2 tc_back  = float2(id.x/512.0, (id.y - 1.0)/512.0);
+	float2 tc_front = float2(id.x/512.0, (id.y + 1.0)/512.0);
+
+
+	float3 displace_left  = Input.SampleLevel(samplerInput, tc_left, 0).xyz;
+	float3 displace_right = Input.SampleLevel(samplerInput, tc_right, 0).xyz;
+	float3 displace_back  = Input.SampleLevel(samplerInput, tc_back, 0).xyz;
+	float3 displace_front = Input.SampleLevel(samplerInput, tc_front, 0).xyz;
+	
+	// Do not store the actual normal value. Using gradient instead, which preserves two differential values.
+	float2 gradient = {-(displace_right.z - displace_left.z), -(displace_front.z - displace_back.z)};
+	
+
+	// Calculate Jacobian corelation from the partial differential of height field
+	float2 Dx = (displace_right.xy - displace_left.xy) * ChoppyScale * GridLen;
+	float2 Dy = (displace_front.xy - displace_back.xy) * ChoppyScale * GridLen;
+	float J = (1.0f + Dx.x) * (1.0f + Dy.y) - Dx.y * Dy.x;
+
+	// Practical subsurface scale calculation: max[0, (1 - J) + Amplitude * (2 * Coverage - 1)].
+	float fold = max(1.0f - J, 0);
+
+	// Output
+	Result[id.xy] = float4(gradient, 0, fold);
 }
