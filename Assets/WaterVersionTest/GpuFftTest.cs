@@ -18,8 +18,12 @@ namespace WaterVersionTest {
         private RenderTexture _tempReal, _tempImagination;
 
         public RenderTexture OutputReal, OutputImagination;
-        
+
+        private Renderer _renderer;
+        private int _perlinMovementId;
         private void Start() {
+            _renderer = GetComponent<Renderer>();
+            //_perlinMovementId = _renderer.sharedMaterial.GetInt("PerlinMovement");
             _h0PlusOmega = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
             Color[] h0PlusOmega = new Color[Size * Size];
             InitHeightMap(ref h0PlusOmega);
@@ -101,8 +105,16 @@ namespace WaterVersionTest {
             GenerateDisplacement.SetTexture(_generateDisplacementKernelStep2, "Input", OutputImagination);
             GenerateDisplacement.SetTexture(_generateDisplacementKernelStep2, "Result", OutputReal);
             GenerateDisplacement.Dispatch(_generateDisplacementKernelStep2, Size/16, Size/16, 1);
+            
+            Vector3 perlinMovement = -WindDir * Time.time * PerlinSpeed;
+            _renderer.sharedMaterial.SetVector("PerlinMovement", perlinMovement);
         }
 
+        public float PerlinSize = 1.0f;
+        public float PerlinSpeed = 0.06f;
+//        public Vector3 PerlinAmplitude = new Vector3(35, 42, 57);
+//        public Vector3 PerlinGradient = new Vector3(1.4f, 1.6f, 2.2f);
+//        public Vector3 PerlinOctave = new Vector3(1.12f, 0.59f, 0.23f);
 
         // Must be power of 2.
         public int Size = 512;

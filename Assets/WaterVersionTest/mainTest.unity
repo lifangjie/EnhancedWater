@@ -1012,7 +1012,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ae921a1ea24a4234abf4457a41c7f986, type: 3}
   m_Name: 
@@ -1139,7 +1139,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c58596f5df47c0848b88c7d11c678d83, type: 3}
   m_Name: 
@@ -1157,7 +1157,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811960633}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c11dbfff584f5085f7984b9216f6a7, type: 3}
   m_Name: 
@@ -1167,10 +1167,10 @@ MonoBehaviour:
   FftCol: {fileID: 7200000, guid: e9823b0c62ed414786e5b390db4b2457, type: 3}
   GenerateDisplacement: {fileID: 7200000, guid: f583007bcf5923c4f943177114adbad8,
     type: 3}
-  _tempReal: {fileID: 0}
-  _tempImagination: {fileID: 0}
   OutputReal: {fileID: 0}
   OutputImagination: {fileID: 0}
+  PerlinSize: 1
+  PerlinSpeed: 0.06
   Size: 512
   Length: 2000
   TimeScale: 0.8

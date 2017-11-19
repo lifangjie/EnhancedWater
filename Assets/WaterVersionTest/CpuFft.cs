@@ -74,10 +74,10 @@ namespace WaterVersionTest {
                 }
             }
             _waterMesh.Clear();
-            _waterMesh.vertices = _vertices;
-            //_waterMesh.uv = _uvs;
-            _waterMesh.normals = _normals;
-            _waterMesh.triangles = triangles;
+//            _waterMesh.vertices = _vertices;
+//            //_waterMesh.uv = _uvs;
+//            _waterMesh.normals = _normals;
+//            _waterMesh.triangles = triangles;
         }
 
         private void Start() {
@@ -89,15 +89,15 @@ namespace WaterVersionTest {
             _hTildeDz = new Complex[Size * Size];
             UpdateMesh();
             
-            hkt = new Texture2D(Size, Size, TextureFormat.RGFloat, false);
+            hkt = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
             dx = new Texture2D(Size, Size, TextureFormat.RGFloat, false);
             dz = new Texture2D(Size, Size, TextureFormat.RGFloat, false);
         }
 
         private void Update() {
             EvaluateWavesFft(Time.time);
-            _waterMesh.vertices = _vertices;
-            _waterMesh.normals = _normals;
+//            _waterMesh.vertices = _vertices;
+//            _waterMesh.normals = _normals;
         }
 
         public Texture2D hkt, dx, dz;
@@ -194,6 +194,15 @@ namespace WaterVersionTest {
                     }
                 }
             }
+            
+            for (int i = 0; i < Size; i++) {
+                for (int j = 0; j < Size; j++) {
+                    index = i * Size + j;
+                    hkt.SetPixel(i,j, new Color(_hTilde[index].Real, _hTildeDx[index].Real, _hTildeDz[index].Real, 0));
+                }
+            }
+            hkt.Apply();
+            Debug.Break();
         }
 
         Complex GaussianRandomVariable() {
@@ -210,7 +219,7 @@ namespace WaterVersionTest {
         float Phillips(int i, int j) {
             Vector2 k = new Vector2(Mathf.PI * (2 * i - Size) / Length, Mathf.PI * (2 * j - Size) / Length);
             float kLength = k.magnitude;
-            if (kLength < 0.000001) return 0f;
+            //if (kLength < 0.000001) return 0f;
 
             float kLength2 = kLength * kLength;
             float kLength4 = kLength2 * kLength2;
