@@ -22,8 +22,6 @@ namespace WaterVersionTest {
         private Renderer _renderer;
         private int _perlinMovementId;
         private void Start() {
-            _renderer = GetComponent<Renderer>();
-            //_perlinMovementId = _renderer.sharedMaterial.GetInt("PerlinMovement");
             _h0PlusOmega = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
             Color[] h0PlusOmega = new Color[Size * Size];
             InitHeightMap(ref h0PlusOmega);
@@ -90,6 +88,10 @@ namespace WaterVersionTest {
 
             _generateDisplacementKernelStep1 = GenerateDisplacement.FindKernel("CSMain");
             _generateDisplacementKernelStep2 = GenerateDisplacement.FindKernel("CSMain2");
+            
+            _renderer = GetComponent<Renderer>();
+            //_perlinMovementId = _renderer.sharedMaterial.GetInt("PerlinMovement");
+            _renderer.sharedMaterial.SetTexture("DisplacementTexture", OutputImagination);
         }
 
         private void Update() {
