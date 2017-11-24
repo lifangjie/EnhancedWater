@@ -929,7 +929,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!154 &745997370
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -1124,7 +1124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 250
-  Length: 128
+  Length: 64
   Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 200
@@ -1173,10 +1173,10 @@ MonoBehaviour:
   PerlinSpeed: 0.06
   Size: 512
   Length: 2000
-  TimeScale: 0.8
+  TimeScale: 0.3
   WaveAmplitude: 0.35
   WindDir: {x: 0.8, y: 0.6}
-  WindSpeed: 600
+  WindSpeed: 150
   WindDependency: 0.07
   ChoppyScale: 1.3
 --- !u!1 &828015682
