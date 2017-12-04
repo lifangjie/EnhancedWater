@@ -22,8 +22,11 @@ namespace WaterVersionTest {
         private Renderer _renderer;
         private int _perlinMovementId;
         private void Start() {
+<<<<<<< HEAD
             CreateSurfaceMesh ctx = new CreateSurfaceMesh();
             ctx.Create();
+=======
+>>>>>>> 7c771187f183b7dae9e3866bcaef08096421feff
             _h0PlusOmega = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
             Color[] h0PlusOmega = new Color[Size * Size];
             InitHeightMap(ref h0PlusOmega);
@@ -97,7 +100,7 @@ namespace WaterVersionTest {
         }
 
         private void Update() {
-            HktTest.SetFloat("Time", Time.time);
+            HktTest.SetFloat("Time", Time.time * TimeScale);
             HktTest.Dispatch(_hktKernel, Size / 16, Size / 16, 1);
             FftRow.Dispatch(_fftRowKernel, 1, Size, 1);
             FftCol.Dispatch(_fftColKernel, 1, Size, 1);
