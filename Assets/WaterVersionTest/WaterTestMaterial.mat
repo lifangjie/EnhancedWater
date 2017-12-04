@@ -7,13 +7,8 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: WaterTestMaterial
-<<<<<<< HEAD
   m_Shader: {fileID: 4800000, guid: 7c73ccbf255ad4e44bf359aa3f0a8d56, type: 3}
   m_ShaderKeywords: _NORMALMAP
-=======
-  m_Shader: {fileID: 4800000, guid: a824b84556745584bb983e2c8f842751, type: 3}
-  m_ShaderKeywords: 
->>>>>>> 7c771187f183b7dae9e3866bcaef08096421feff
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -104,7 +99,6 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - DisplacementSize: 0.001
     - PerlinSize: 0.01
     - _BumpScale: 1
     - _BumpStrength: 1
@@ -115,9 +109,9 @@ Material:
     - _DstBlend: 0
     - _GerstnerIntensity: 1
     - _GlossMapScale: 1
-    - _Glossiness: 0
+    - _Glossiness: 1
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _Metallic: 1
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
@@ -127,34 +121,23 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-<<<<<<< HEAD
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
-    - _Tess: 100
+    - _Tess: 64
     - _TessEdge: 2
-=======
-    - _Tess: 200
->>>>>>> 7c771187f183b7dae9e3866bcaef08096421feff
     - _Transparency: 4
     - _UVSec: 0
     - _UseUIAlphaClip: 0
     - _WaveScale: 0.55
     - _ZWrite: 1
-<<<<<<< HEAD
     - _fadeDist: 0.1
-    - maxDist: 1000
-    - minDist: -5500
-    m_Colors:
-    - PerlinAmplitude: {r: 1.4, g: 1.68, b: 2.28, a: 1}
-=======
-    - maxDist: 200
+    - maxDist: 2000
     - minDist: 0
     m_Colors:
-    - PerlinAmplitude: {r: 0.35, g: 0.42, b: 0.57, a: 1}
->>>>>>> 7c771187f183b7dae9e3866bcaef08096421feff
+    - PerlinAmplitude: {r: 1.4, g: 1.68, b: 2.28, a: 1}
     - PerlinGradient: {r: 1.4, g: 1.6, b: 2.2, a: 1}
     - PerlinOctave: {r: 1.12, g: 0.59, b: 0.23, a: 1}
     - WaveSpeed: {r: 19, g: 9, b: -16, a: -7}

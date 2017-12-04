@@ -929,7 +929,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!154 &745997370
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -1123,8 +1123,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2f80dff5afa4c24930a326a0577cc72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 250
-  Length: 64
+  Size: 2
+  Length: 16
   Wind: {x: 32, y: 32}
   PhillipsSpectrum: 0.0005
   Cycle: 200
