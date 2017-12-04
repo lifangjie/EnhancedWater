@@ -84,9 +84,9 @@ namespace WaterVersionTest {
                     _htilde0[index] = hTilde_0(j, i);
                     _htilde0MkConj[index] = hTilde_0(-j, -i).Conjugate();
 
-                    _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length / (Size - 1);
+                    _originalVertices[index].x = _vertices[index].x = (i - Size / 2) * Length;// / (Size - 1);
                     _originalVertices[index].y = _vertices[index].y = 0;
-                    _originalVertices[index].z = _vertices[index].z = (j - Size / 2) * Length / (Size - 1);
+                    _originalVertices[index].z = _vertices[index].z = (j - Size / 2) * Length;// / (Size - 1);
 
                     _normals[index] = Vector3.up;
                     // set triangles
@@ -95,16 +95,16 @@ namespace WaterVersionTest {
                         triangles[triangleIndex + 1] = index + 1;
                         triangles[triangleIndex + 2] = index + Size + 1;
 
-                        triangles[triangleIndex + 3] = index;
-                        triangles[triangleIndex + 4] = index + Size + 1;
-                        triangles[triangleIndex + 5] = index + Size;
+                        triangles[triangleIndex + 3] = index + Size + 1;
+                        triangles[triangleIndex + 4] = index + Size;
+                        triangles[triangleIndex + 5] = index;
 
                         triangleIndex += 6;
                     }
                     // set uv
                     //_uvs[index].x = (i + 0.5f) / Size;
-                    _uvs[index].x = (i + 0.5f - Size/2f) * Length / Size;
-                    _uvs[index].y = (j + 0.5f - Size/2f) * Length / Size;
+                    _uvs[index].x = (i + 0.5f - Size/2f) * Length;// / Size;
+                    _uvs[index].y = (j + 0.5f - Size/2f) * Length;// / Size;
                     //_uvs[index].y = (j + 0.5f) / Size;
                 }
             }

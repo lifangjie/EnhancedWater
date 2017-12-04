@@ -16,12 +16,64 @@
 		CGPROGRAM
 		// Physically based Standard lighting model, and enable shadows on all light types
 		#pragma surface surf Custom fullforwardshadows vertex:vert// tessellate:tessDistance
+		//#pragma hull SubDToBezierHS
 
-		// Use shader model 3.0 target, to get nicer looking lighting
-		#pragma target 4.6
+		#pragma target 5.0
 		#include "Tessellation.cginc"
 		#include "UnityCG.cginc"
 		#include "UnityPBSLighting.cginc"
+		
+//// Input control point
+//struct VS_CONTROL_POINT_OUTPUT
+//{
+//    float3 vPosition : WORLDPOS;
+//    float2 vUV       : TEXCOORD0;
+//    float3 vTangent  : TANGENT;
+//};
+//// Output control point
+//struct BEZIER_CONTROL_POINT
+//{
+//    float3 vPosition	: BEZIERPOS;
+//};
+//// Output patch constant data.
+//struct HS_CONSTANT_DATA_OUTPUT
+//{
+//    float Edges[4]        : SV_TessFactor;
+//    float Inside[2]       : SV_InsideTessFactor;
+//    
+//    float3 vTangent[4]    : TANGENT;
+//    float2 vUV[4]         : TEXCOORD;
+//    float3 vTanUCorner[4] : TANUCORNER;
+//    float3 vTanVCorner[4] : TANVCORNER;
+//    float4 vCWts          : TANWEIGHTS;
+//};
+//// Patch Constant Function
+//HS_CONSTANT_DATA_OUTPUT SubDToBezierConstantsHS( 
+//    InputPatch<VS_CONTROL_POINT_OUTPUT, 32> ip,
+//    uint PatchID : SV_PrimitiveID )
+//{	
+//    HS_CONSTANT_DATA_OUTPUT Output;
+//
+//    // Insert code to compute Output here
+//    
+//    return Output;
+//}
+//[domain("quad")]
+//[partitioning("integer")]
+//[outputtopology("triangle_cw")]
+//[outputcontrolpoints(16)]
+//[patchconstantfunc("SubDToBezierConstantsHS")]
+//BEZIER_CONTROL_POINT SubDToBezierHS( 
+//    InputPatch<VS_CONTROL_POINT_OUTPUT, MAX_POINTS> ip, 
+//    uint i : SV_OutputControlPointID,
+//    uint PatchID : SV_PrimitiveID )
+//{
+//    VS_CONTROL_POINT_OUTPUT Output;
+//
+//    // Insert code to compute Output here.
+//    
+//    return Output;
+//}
 
 		struct appdata_custom {
 			float4 vertex : POSITION;

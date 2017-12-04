@@ -22,6 +22,8 @@ namespace WaterVersionTest {
         private Renderer _renderer;
         private int _perlinMovementId;
         private void Start() {
+            CreateSurfaceMesh ctx = new CreateSurfaceMesh();
+            ctx.Create();
             _h0PlusOmega = new Texture2D(Size, Size, TextureFormat.RGBAFloat, false);
             Color[] h0PlusOmega = new Color[Size * Size];
             InitHeightMap(ref h0PlusOmega);
