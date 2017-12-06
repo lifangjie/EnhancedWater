@@ -239,7 +239,7 @@ Shader "Custom/WaterShaderTest" {
 				// final color is between refracted and reflected based on fresnel
 				half4 color;
 
-				half fresnel = 0.02 + 0.97*pow((1-dot(viewDir, bump)),2);
+				half fresnel = 0.02 + 0.98*pow((1-dot(viewDir, bump)),5);
 				#if defined(WATER_REFRACTIVE)
 				//fresnel *= fade;
 				color = lerp(refr, refl, fresnel);

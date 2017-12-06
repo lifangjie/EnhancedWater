@@ -86,6 +86,10 @@
 			half2 bump = (s.bump.xy + s.bump.zw) * 0.5;
 			s.Normal = normalize(half3(bump.x, 1.3, bump.y) + s.Normal);
 
+            //half grazingTerm = saturate(0.89 + (1-oneMinusReflectivity));
+            //half fresnel = FresnelTerm (0.02, saturate(dot(s.Normal, viewDir)));
+            half fresnel = 0.98 - 0.98 * Pow5 (1 - saturate(dot(s.Normal, viewDir)));
+    
 			half4 c = UNITY_BRDF_PBS (1, 0.945, 0.055, 0.89, s.Normal, viewDir, gi.light, gi.indirect);
 
 			UnityStandardData data;
@@ -93,11 +97,13 @@
 			data.diffuseColor   = 0;
 			data.occlusion      = 1;
 			data.specularColor  = 0.02;
+			//data.occlusion      = 0;
+			//data.specularColor  = 0;
 			
-            half3 h = normalize (gi.light.dir + viewDir);
-            float nh = max (0, dot (s.Normal, h));
+            //half3 h = normalize (gi.light.dir + viewDir);
+            //float nh = max (0, dot (s.Normal, h));
             //data.specularColor = pow (nh, 128.0) * 1;
-			data.smoothness     = 0.89;
+			data.smoothness     = 1;
 			data.normalWorld    = s.Normal;
 
 			UnityStandardDataToGbuffer(data, outGBuffer0, outGBuffer1, outGBuffer2);
@@ -105,9 +111,11 @@
 			//half4 emission = half4(s.Emission + c.rgb, 1);
 
 			//return emission;
-			//return 0;
-			return half4(s.Albedo, 1);
-			//return half4(gi.light.dir, 1);
+			return half4(s.Albedo * fresnel, 1);
+			//return half4(-log2(1-fresnel), 0, 0, 1);
+			//return half4(fresnel, 0, 0, 1);
+			return 0;
+			
 		}
 		
 		sampler2D _BumpMap;
