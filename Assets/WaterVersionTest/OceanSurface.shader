@@ -6,8 +6,8 @@
 		_BumpStrength ("BumpStrength", Range(0,10)) = 3
 		WaveSpeed("Wave speed (map1 x,y; map2 x,y)", Vector) = (9,5,-7,-4)
 		[NoScaleOffset] _VerticesTex("Vertices Texture", 2D) = "Black" {}
-		[NoScaleOffset] _RefractionTex("Internal Refraction", 2D) = "Blue" {}
-		[NoScaleOffset] _DepthTex("Internal Depth", 2D) = "Blue" {}
+		[NoScaleOffset] _RefractionTex("Internal Refraction", 2D) = "Black" {}
+		[NoScaleOffset] _DepthTex("Internal Depth", 2D) = "Black" {}
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque"}
@@ -15,12 +15,13 @@
 		
 		CGPROGRAM
 		// Physically based Standard lighting model, and enable shadows on all light types
-		#pragma surface surf Custom fullforwardshadows vertex:vert// tessellate:tessDistance
+		#pragma surface surf Custom noinstancing fullforwardshadows vertex:vert// tessellate:tessDistance
+		//#pragma multi_compile_noinstancing
 		//#pragma hull SubDToBezierHS
 
 		#pragma target 5.0
 		//#include "UnityCG.cginc"
-		#include "UnityPBSLighting.cginc"
+		//#include "UnityPBSLighting.cginc"
 
 		struct appdata_custom {
 			float4 vertex : POSITION;
@@ -29,7 +30,6 @@
 			float4 texcoord1 : TEXCOORD1;
 			float4 texcoord2 : TEXCOORD2;
 			float4 texcoord3 : TEXCOORD3;
-			UNITY_VERTEX_INPUT_INSTANCE_ID
 		};
 
 		struct SurfaceOutputCustom
@@ -44,11 +44,11 @@
 			fixed4 bump;
 		};
 
-		inline half4 LightingCustom (SurfaceOutputCustom s, half3 viewDir, UnityGI gi)
-		{
-			half4 c = 0;
-			return c;
-		}
+//		inline half4 LightingCustom (SurfaceOutputCustom s, half3 viewDir, UnityGI gi)
+//		{
+//			half4 c = 0;
+//			return c;
+//		}
 
 		half _BumpStrength;
 		half _Transparency;
@@ -150,5 +150,5 @@
 		}
 		ENDCG
 	}
-	FallBack "Diffuse"
+	//FallBack "Diffuse"
 }
