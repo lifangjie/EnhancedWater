@@ -1,5 +1,4 @@
 todo :
-1.tesselllation
-2.fft waves
-3.try ray tracing reflection and refraction
-4.mesh lod
+1.combine tesselllation fft waves and shading
+2.refraction distort depond on water depth
+3.try use last frame's color and depth buffer to save performance

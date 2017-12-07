@@ -120,7 +120,7 @@ MonoBehaviour:
         neutralWhiteLevel: 5.3
         neutralWhiteClip: 10
       basic:
-        postExposure: 0
+        postExposure: 0.6
         temperature: 0
         tint: 0
         hueShift: 0
@@ -150,36 +150,12 @@ MonoBehaviour:
               time: 0
               value: 0
               inSlope: 0
-              outSlope: 2.5223985
-              tangentMode: 0
-            - serializedVersion: 2
-              time: 0.09689214
-              value: 0.2916667
-              inSlope: 2.071969
-              outSlope: 2.071969
-              tangentMode: 0
-            - serializedVersion: 2
-              time: 0.26873857
-              value: 0.57575756
-              inSlope: 1.3235531
-              outSlope: 1.3235531
-              tangentMode: 0
-            - serializedVersion: 2
-              time: 0.4478976
-              value: 0.7537879
-              inSlope: 0.87901646
-              outSlope: 0.87901646
-              tangentMode: 0
-            - serializedVersion: 2
-              time: 0.63619745
-              value: 0.8636364
-              inSlope: 0.3816784
-              outSlope: 0.3816784
+              outSlope: 1
               tangentMode: 0
             - serializedVersion: 2
               time: 1
               value: 1
-              inSlope: 0.25445214
+              inSlope: 1
               outSlope: 0
               tangentMode: 0
             m_PreInfinity: 2

@@ -90,10 +90,10 @@
             //half fresnel = FresnelTerm (0.02, saturate(dot(s.Normal, viewDir)));
             half fresnel = 0.98 - 0.98 * Pow5 (1 - saturate(dot(s.Normal, viewDir)));
     
-			half4 c = UNITY_BRDF_PBS (1, 0.945, 0.055, 0.89, s.Normal, viewDir, gi.light, gi.indirect);
+			//half4 c = UNITY_BRDF_PBS (1, 0.945, 0.055, 0.89, s.Normal, viewDir, gi.light, gi.indirect);
 
 			UnityStandardData data;
-			data.diffuseColor   = c * 0.11;
+			data.diffuseColor   = 0.11;
 			data.diffuseColor   = 0;
 			data.occlusion      = 1;
 			data.specularColor  = 0.02;
