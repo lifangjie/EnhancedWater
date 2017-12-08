@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: WaterTestMaterial
-  m_Shader: {fileID: 4800000, guid: 7081c1f060605654d9268f7b70cf05d7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 7c73ccbf255ad4e44bf359aa3f0a8d56, type: 3}
   m_ShaderKeywords: _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -99,9 +99,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - DisplacementSize: 0.001
     - PerlinSize: 0.01
     - _BumpScale: 1
-    - _BumpStrength: 1
+    - _BumpStrength: 5
     - _ColorMask: 15
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -114,10 +115,12 @@ Material:
     - _Metallic: 1
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _Opacity: 3
     - _Parallax: 0.02
     - _ReflDistort: 1.5
     - _RefrDistort: 1.5
     - _Shininess: 0.7
+    - _Smoothness: 0.89
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -126,22 +129,24 @@ Material:
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
-    - _Tess: 1
+    - _Tess: 64
     - _TessEdge: 2
-    - _Transparency: 9.15
+    - _Transparency: 9
     - _UVSec: 0
     - _UseUIAlphaClip: 0
     - _WaveScale: 0.02
     - _ZWrite: 1
     - _fadeDist: 0.1
-    - maxDist: 2000
-    - minDist: 0
+    - maxDist: 1000
+    - minDist: 5
     m_Colors:
     - PerlinAmplitude: {r: 1.4, g: 1.68, b: 2.28, a: 1}
     - PerlinGradient: {r: 1.4, g: 1.6, b: 2.2, a: 1}
     - PerlinOctave: {r: 1.12, g: 0.59, b: 0.23, a: 1}
     - WaveSpeed: {r: 19, g: 9, b: -16, a: -7}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DeepWaterColor: {r: 0, g: 0.011764706, b: 0.047058824, a: 1}
+    - _DepthWaterColor: {r: 0.02, g: 0.04, b: 0.049999982, a: 1}
     - _Emission: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GAmplitude: {r: 0.06, g: 0.07, b: 0.05, a: 0.05}

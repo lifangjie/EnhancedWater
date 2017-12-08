@@ -9,12 +9,13 @@
 		DisplacementTexture ("Displacement Texture", 2D) = "white" {}
 		[HideInInspector] PerlinOctave ("PerlinOctave", Vector) = (1.12, 0.59, 0.23)
 		PerlinSize ("PerlinSize", float) = 1.0
+		DisplacementSize ("DisplacementSize", float) = 1.0
 		PerlinAmplitude ("PerlinAmplitude", Vector) = (35, 42, 57)
 		[HideInInspector] PerlinGradient ("PerlinGradient", Vector) = (1.4, 1.6, 2.2)
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
+		Tags { "RenderType"="Opaque" "LightMode"="Deferred"}
 		LOD 100
 
 		Pass
@@ -24,10 +25,11 @@
 			#pragma fragment frag
 			#pragma hull hs
 			#pragma domain ds
-			// make fog work
-			#pragma multi_compile_fog
 			
 			#include "UnityCG.cginc"
+			#include "UnityLightingCommon.cginc"
+			#include "UnityImageBasedLighting.cginc"
+            #include "Lighting.cginc"
 			#include "Tessellation.cginc"
 
 			struct appdata
@@ -40,7 +42,6 @@
 			{
 				float4 vertex : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
 			};
 			struct InternalTessInterp_appdata {
 				float4 vertex : INTERNALTESSPOS;
@@ -52,18 +53,30 @@
 				o.uv = v.uv;
 				return o;
 			}
-			struct UnityTessellationFactors {
+			struct UnityTessellationFactorsCustom {
 				float edge[3] : SV_TessFactor;
 				float inside : SV_InsideTessFactor;
 			};
 			float _Tess;
 			float minDist;
 			float maxDist;
-			float4 tessDistance (appdata v0, appdata v1, appdata v2) {
-				return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _Tess);
+			float UnityCalcDistanceTessFactorCustom (float4 vertex, float minDist, float maxDist, float tess)
+			{
+				float3 wpos = mul(unity_ObjectToWorld,vertex).xyz;
+				float dist = distance (wpos, _WorldSpaceCameraPos);
+				float f = clamp(pow(1.0 - sqrt(saturate((dist - minDist) / (maxDist - minDist))), 2), 0.01, 1.0) * tess;
+				return f;
 			}
-			UnityTessellationFactors hsconst (InputPatch<InternalTessInterp_appdata,3> v) {
-				UnityTessellationFactors o;
+			float4 tessDistance (appdata v0, appdata v1, appdata v2) {
+				float3 f;
+				f.x = UnityCalcDistanceTessFactorCustom (v0.vertex,minDist,maxDist,_Tess);
+				f.y = UnityCalcDistanceTessFactorCustom (v1.vertex,minDist,maxDist,_Tess);
+				f.z = UnityCalcDistanceTessFactorCustom (v2.vertex,minDist,maxDist,_Tess);
+
+				return UnityCalcTriEdgeTessFactors (f);
+			}
+			UnityTessellationFactorsCustom hsconst (InputPatch<InternalTessInterp_appdata,3> v) {
+				UnityTessellationFactorsCustom o;
 				float4 tf;
 				appdata vi[4];
 				vi[0].vertex = v[0].vertex;
@@ -95,6 +108,7 @@
 			float3 PerlinAmplitude;
 			float3 PerlinGradient;
 			float PerlinSize;
+			float DisplacementSize;
 
 			v2f vert (appdata v)
 			{
@@ -103,7 +117,7 @@
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 				float3 eye_vec = o.worldPos - _WorldSpaceCameraPos;
 				float dist_2d = length(eye_vec.xy);
-				float blend_factor = (20000 - dist_2d) / (20000 - 800);
+				float blend_factor = (1000 - dist_2d) / (1000 - 8);
 				blend_factor = clamp(blend_factor, 0, 1);
 
 				// Add perlin noise to distant patches
@@ -125,9 +139,11 @@
 				// Displacement map
 				float3 displacement = 0;
 				if (blend_factor > 0)
-					displacement = tex2Dlod(DisplacementTexture, float4(uv, 0, 0)).xzy;
+					displacement = tex2Dlod(DisplacementTexture, float4(v.uv * DisplacementSize, 0, 0)).xzy;
 				displacement = lerp(float3(0, perlin, 0), displacement, blend_factor);
-				//v.vertex.xyz += displacement;
+				v.vertex.xyz += displacement;
+				//v.vertex.xyz += float3(0, perlin, 0);
+				
 
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				//o.uv = TRANSFORM_TEX(v.uv, _MainTex);
@@ -144,17 +160,73 @@
 				return o;
 			}
 			
-			half4 frag (v2f i) : SV_Target
-			{
-				// sample the texture
-				float3 eye_vec = i.worldPos - _WorldSpaceCameraPos;
-				float dist_2d = length(eye_vec.xy);
-				half blend_factor = (20000 - dist_2d) / (20000 - 800);
-				half4 col = half4(blend_factor, blend_factor, blend_factor, 1);
-				col = mul(col, 1);
-				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
-				return col;
+			void frag (v2f i,
+				out half4 outGBuffer0 : SV_Target0,
+				out half4 outGBuffer1 : SV_Target1,
+				out half4 outGBuffer2 : SV_Target2,
+				out half4 outEmission : SV_Target3
+				) {
+				float3 worldPos = i.worldPos;
+				fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
+				
+			// Setup lighting environment
+				UnityGI gi;
+				UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
+				gi.indirect.diffuse = 0;
+				gi.indirect.specular = 0;
+				gi.light.color = 0;
+				gi.light.dir = half3(0,1,0);
+			// Call GI (lightmaps/SH/reflections) lighting function
+				UnityGIInput giInput;
+				UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);
+				giInput.light = gi.light;
+				giInput.worldPos = worldPos;
+				giInput.worldViewDir = worldViewDir;
+				giInput.atten = 1;
+			#if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+				//giInput.lightmapUV = IN.lmap;
+			#else
+				giInput.lightmapUV = 0.0;
+			#endif
+			#if UNITY_SHOULD_SAMPLE_SH
+				//giInput.ambient = IN.sh;
+			#else
+				giInput.ambient.rgb = 0.0;
+			#endif
+				giInput.probeHDR[0] = unity_SpecCube0_HDR;
+				giInput.probeHDR[1] = unity_SpecCube1_HDR;
+			#if defined(UNITY_SPECCUBE_BLENDING) || defined(UNITY_SPECCUBE_BOX_PROJECTION)
+				giInput.boxMin[0] = unity_SpecCube0_BoxMin; // .w holds lerp value for blending
+			#endif
+			#ifdef UNITY_SPECCUBE_BOX_PROJECTION
+				giInput.boxMax[0] = unity_SpecCube0_BoxMax;
+				giInput.probePosition[0] = unity_SpecCube0_ProbePosition;
+				giInput.boxMax[1] = unity_SpecCube1_BoxMax;
+				giInput.boxMin[1] = unity_SpecCube1_BoxMin;
+				giInput.probePosition[1] = unity_SpecCube1_ProbePosition;
+			#endif
+				//fixed3 normal = normalize(fixed3(s.bump.x, _BumpStrength + 1, s.bump.y));
+				fixed3 normal = fixed3(0, 1, 0);
+			#if defined(UNITY_PASS_DEFERRED) && UNITY_ENABLE_REFLECTION_BUFFERS
+				gi = UnityGlobalIllumination(giInput, 1, normal);
+			#else
+				Unity_GlossyEnvironmentData g = UnityGlossyEnvironmentSetup(1, worldViewDir, normal, 0.08);
+				gi = UnityGlobalIllumination(giInput, 1, normal, g);
+			#endif
+
+				half fresnel = (0.02 + 0.98 * Pow5(1 - saturate(dot(normal, worldViewDir))));// * s.depth;
+				UnityStandardData data;
+				data.diffuseColor   = 1 - 0.9;
+				data.occlusion      = 1;
+				data.specularColor  = 0.08;
+				data.smoothness     = 1;
+				data.normalWorld    = normal;
+				UnityStandardDataToGbuffer(data, outGBuffer0, outGBuffer1, outGBuffer2);
+				//s.Albedo = lerp(1, _DeepWaterColor, );
+				//outEmission = half4(1* (1 - fresnel), 1);
+				//outEmission = half4(1 - fresnel, 1 - fresnel, 1 - fresnel, 1);
+				outEmission = 0;
+
 			}
 			ENDCG
 		}
