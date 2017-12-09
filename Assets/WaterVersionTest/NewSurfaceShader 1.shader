@@ -1,4 +1,4 @@
-﻿Shader "Custom/OceanSurface" {
+﻿Shader "Custom/OceanSurfaceFixedFunction" {
 	Properties {
 		_Transparency("Water transparency", Float) = 50.0
 		[NoScaleOffset] _BumpMap("Normalmap ", 2D) = "bump" {}

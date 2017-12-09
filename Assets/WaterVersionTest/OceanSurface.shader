@@ -23,7 +23,7 @@
 
 		#pragma target 5.0
 		//#include "UnityCG.cginc"
-		//#include "UnityPBSLighting.cginc"
+		#include "UnityPBSLighting.cginc"
 
 		struct appdata_custom {
 			float4 vertex : POSITION;
@@ -96,14 +96,15 @@
             //half fresnel = FresnelTerm (0.02, saturate(dot(s.Normal, viewDir)));
             half fresnel = (0.02 + 0.98 * Pow5(1 - saturate(dot(normal, viewDir))));// * s.depth;
     
-			//half4 c = UNITY_BRDF_PBS (1, 0.945, 0.055, 0.89, s.Normal, viewDir, gi.light, gi.indirect);
+			//half4 c = UNITY_BRDF_PBS ((1 - _Smoothness) * s.depth, 0.02, 0.98, 1, s.Normal, viewDir, gi.light, gi.indirect);
 
 			UnityStandardData data;
 			data.diffuseColor   = 1 - _Smoothness;
 			data.occlusion      = 1;
-			data.specularColor  = 0.08;
-			//data.occlusion      = 0;
-			//data.specularColor  = 0;
+			data.specularColor  = 0.02;
+//			data.diffuseColor = 0;
+//			data.occlusion      = 0;
+//			data.specularColor  = 0;
 			
             //half3 h = normalize (gi.light.dir + viewDir);
             //float nh = max (0, dot (s.Normal, h));
@@ -118,10 +119,9 @@
 			//return emission;
 			s.Albedo = lerp(s.Albedo, _DeepWaterColor, s.depth);
 			return half4(s.Albedo * (1 - fresnel), 1);
-			//return half4(fresnel, 1-fresnel,0,1);
-			//return half4(-log2(1-fresnel), 0, 0, 1);
-			//return half4(fresnel, 0, 0, 1);
+			//return half4(c.rgb, 1);
 			//return 0;
+			//return half4(s.depth, s.depth, s.depth,1);
 			
 		}
 		
@@ -146,7 +146,7 @@
 			half sceneZ = LinearEyeDepth (tex2Dproj(_DepthTex, UNITY_PROJ_COORD(IN.grabScreenPos)).r);
 			half depth = saturate((sceneZ - IN.viewZ) / _Transparency);
 			o.depth = depth;
-			fixed3 refr = tex2Dproj(_RefractionTex, IN.grabScreenPos + depth);
+			fixed3 refr = tex2Dproj(_RefractionTex, IN.grabScreenPos);
 			o.Albedo = refr;
 			// Metallic and smoothness come from slider variables
 			o.Alpha = 1;
